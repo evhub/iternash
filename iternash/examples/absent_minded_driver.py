@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x40d50a2a
+# __coconut_hash__ = 0x293e044d
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -26,13 +26,20 @@ from iternash import expr_agent
 from iternash import Game
 
 
-p_agent = expr_agent(name="p", expr="(n/(n+m) * (r_y - r_x)/(r_y - r_f))**(1/m)")
+p_agent = expr_agent(name="p", expr="""(
+    (n * p_m - (d-1)/(1-p))
+    / (n * p_m + m - (d-1)/(1-p))
+    * (r_y - r_x)/(r_y - r_f)
+)^(1/(m-d))""", default=0.9)
 
 
-n_agent = expr_agent(name="n", expr="m * (1-eps)/eps")
+n_agent = expr_agent(name="n", expr="m/p_m * (1-eps)/eps")
 
 
-game = Game(("m", 100), ("eps", 0.01), ("r_y", 1), ("r_x", 0), ("r_f", 0), n_agent, p_agent)
+PC_agent = expr_agent(name="P_C", expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))")
+
+
+game = Game(d=2, p_m=0.5, m=100, eps=0.01, n=n_agent, r_y=1, r_x=0, r_f=0, p=p_agent, PC=PC_agent)
 
 
 if __name__ == "__main__":

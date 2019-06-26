@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xcf46b5c2
+# __coconut_hash__ = 0x260df1f0
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -35,19 +35,20 @@ class Game(_coconut.object):
             _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("self")
             agents = _coconut_match_to_args[1:]
             _coconut_match_temp_1 = _coconut_match_to_kwargs.pop("sequential_init") if "sequential_init" in _coconut_match_to_kwargs else True
-            if not _coconut_match_to_kwargs:
-                self = _coconut_match_temp_0
-                sequential_init = _coconut_match_temp_1
-                _coconut_match_check = True
+            self = _coconut_match_temp_0
+            sequential_init = _coconut_match_temp_1
+            named_agents = _coconut_match_to_kwargs
+            _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, *agents, sequential_init=True):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'match def __init__(self, *agents, sequential_init=True):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, *agents, sequential_init=True, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'match def __init__(self, *agents, sequential_init=True, **named_agents):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
+        self.env = {}
         self.agents = []
-        for a in agents:
+        for a in _coconut.itertools.chain.from_iterable((_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to = a
             _coconut_match_check = False
             if (_coconut.isinstance(_coconut_match_to, _coconut.abc.Sequence)) and (_coconut.len(_coconut_match_to) == 2) and (_coconut.isinstance(_coconut_match_to[0], str)):
@@ -55,9 +56,13 @@ class Game(_coconut.object):
                 actor = _coconut_match_to[1]
                 _coconut_match_check = True
             if _coconut_match_check:
+                if not callable(actor):
+                    self.env[name] = actor
+                    continue
                 a = Agent(name, actor)
+            if a.has_default():
+                self.env[name] = a.default
             self.agents.append(a)
-        self.env = {}
         self.step(sequential_update=sequential_init)
 
     def step(self, sequential_update=True):

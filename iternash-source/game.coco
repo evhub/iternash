@@ -6,13 +6,18 @@ from iternash.agent import Agent
 
 
 class Game:
-    match def __init__(self, *agents, sequential_init=True):
-        self.agents = []
-        for a in agents:
-            match (name is str, actor) in a:
-                a = Agent(name, actor)
-            self.agents.append(a)
+    match def __init__(self, *agents, sequential_init=True, **named_agents):
         self.env = {}
+        self.agents = []
+        for a in agents :: named_agents.items():
+            match (name is str, actor) in a:
+                if not callable(actor):
+                    self.env[name] = actor
+                    continue
+                a = Agent(name, actor)
+            if a.has_default():
+                self.env[name] = a.default
+            self.agents.append(a)
         self.step(sequential_update=sequential_init)
 
     def step(self, sequential_update=True):

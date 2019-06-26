@@ -1,3 +1,7 @@
+.PHONY: test
+test: install
+	python ./iternash/examples/absent_minded_driver.py
+
 .PHONY: install
 install: build
 	pip install -Ue .
@@ -10,10 +14,6 @@ build:
 .PHONY: setup
 setup:
 	pip install -U setuptools pip coconut-develop[watch]
-
-.PHONY: test
-test: install
-	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: upload
 upload: clean install

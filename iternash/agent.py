@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3777f8e8
+# __coconut_hash__ = 0xcefeb736
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -20,31 +20,37 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
+no_default = object()
+
 class Agent(_coconut.object):
     def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
         _coconut_match_check = False
         _coconut_FunctionMatchError = _coconut_get_function_match_error()
-        if (_coconut.len(_coconut_match_to_args) <= 3) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "self" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "name" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 2, "actor" in _coconut_match_to_kwargs)) == 1):
+        if (_coconut.len(_coconut_match_to_args) <= 4) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "self" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "name" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 2, "actor" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 3, "default" in _coconut_match_to_kwargs)) <= 1):
             _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("self")
             _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("name")
             _coconut_match_temp_2 = _coconut_match_to_args[2] if _coconut.len(_coconut_match_to_args) > 2 else _coconut_match_to_kwargs.pop("actor")
+            _coconut_match_temp_3 = _coconut_match_to_args[3] if _coconut.len(_coconut_match_to_args) > 3 else _coconut_match_to_kwargs.pop("default") if "default" in _coconut_match_to_kwargs else no_default
             if (_coconut.isinstance(_coconut_match_temp_1, str)) and (not _coconut_match_to_kwargs):
                 self = _coconut_match_temp_0
                 name = _coconut_match_temp_1
                 actor = _coconut_match_temp_2
+                default = _coconut_match_temp_3
                 _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def __init__(self, name is str, actor):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'def __init__(self, name is str, actor):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def __init__(self, name is str, actor, default=no_default):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'def __init__(self, name is str, actor, default=no_default):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
         self.name = name
         if isinstance(actor, Agent):
             self.actor = actor.actor
+            self.default = default if default is not no_default else actor.default
         else:
             self.actor = actor
+            self.default = default
 
     def __call__(self, env):
         if callable(self.actor):
@@ -54,6 +60,9 @@ class Agent(_coconut.object):
 
     def __str__(self):
         return self.name
+
+    def has_default(self):
+        return self.default is not no_default
 
 
 def agent(*_coconut_match_to_args, **_coconut_match_to_kwargs):
@@ -93,9 +102,10 @@ def agent(*_coconut_match_to_args, **_coconut_match_to_kwargs):
     return Agent(agent_func_or_name.__name__, agent_func_or_name)
 
 
-def _expr_actor(expr, default, env):
-    return eval(expr, {}, env) if env else default
+default_expr_aliases = {"\n": "", "^": "**"}
 
-def expr_agent(name, expr, default=None):
+def expr_agent(name, expr, default=no_default, globs=None, aliases=default_expr_aliases):
     """Construct an agent that evaluates the given expression."""
-    return Agent(name, _coconut.functools.partial(_expr_actor, expr, default))
+    for k, v in aliases.items():
+        expr = expr.replace(k, v)
+    return Agent(name, _coconut.functools.partial(eval, expr, globs), default)
