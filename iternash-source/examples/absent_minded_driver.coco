@@ -9,7 +9,6 @@ from iternash import (
 p_agent = expr_agent(
     name="p",
     expr="(n/(n+m) * (r_y - r_x)/(r_y - r_f))**(1/m)",
-    default=0.9,
 )
 
 

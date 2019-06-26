@@ -1,7 +1,10 @@
 class Agent:
     def __init__(self, name is str, actor):
         self.name = name
-        self.actor = actor
+        if isinstance(actor, Agent):
+            self.actor = actor.actor
+        else:
+            self.actor = actor
 
     def __call__(self, env):
         if callable(self.actor):

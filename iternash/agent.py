@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf04dd2bb
+# __coconut_hash__ = 0x3777f8e8
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -41,7 +41,10 @@ class Agent(_coconut.object):
             raise _coconut_match_err
 
         self.name = name
-        self.actor = actor
+        if isinstance(actor, Agent):
+            self.actor = actor.actor
+        else:
+            self.actor = actor
 
     def __call__(self, env):
         if callable(self.actor):
