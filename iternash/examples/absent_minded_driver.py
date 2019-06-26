@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7aa7ecd
+# __coconut_hash__ = 0x52a7ef05
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -8,7 +8,7 @@
 
 from __future__ import print_function, absolute_import, unicode_literals, division
 import sys as _coconut_sys, os.path as _coconut_os_path
-_coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
+_coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.dirname(_coconut_os_path.abspath(__file__)))
 _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
 if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cached_module.__file__) != _coconut_file_path:
     del _coconut_sys.modules[str("__coconut__")]
@@ -20,5 +20,20 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
-from iternash.agent import *
-from iternash.game import *
+import random
+
+from iternash import expr_agent
+from iternash import Game
+
+
+p_agent = expr_agent(name="p", expr="(n/(n+m) * (r_y - r_x)/(r_y - r_f))**(1/m)", default=0.9)
+
+
+n_agent = expr_agent(name="n", expr="m * (1-eps)/eps")
+
+
+game = Game(("m", 100), ("eps", 0.01), ("r_y", 1), ("r_x", 0), ("r_f", 0), n_agent, p_agent)
+
+
+if __name__ == "__main__":
+    (print)(game.run())

@@ -1,0 +1,29 @@
+class Agent:
+    def __init__(self, name is str, actor):
+        self.name = name
+        self.actor = actor
+
+    def __call__(self, env):
+        if callable(self.actor):
+            return self.actor(env)
+        else:
+            return self.actor
+
+    def __str__(self) =
+        self.name
+
+
+def agent(name is str) =
+    Agent$(name)
+
+addpattern def agent(agent_func) =
+    """Decorator for easily constructing Agents."""
+    Agent(agent_func_or_name.__name__, agent_func_or_name)
+
+
+def _expr_actor(expr, default, env) =
+    eval(expr, {}, env) if env else default
+
+def expr_agent(name, expr, default=None) =
+    """Construct an agent that evaluates the given expression."""
+    Agent(name, _expr_actor$(expr, default))

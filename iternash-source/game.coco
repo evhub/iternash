@@ -1,0 +1,34 @@
+from copy import deepcopy
+
+from tqdm import tqdm
+
+from iternash.agent import Agent
+
+
+class Game:
+    match def __init__(self, *agents, sequential_init=True):
+        self.agents = []
+        for a in agents:
+            match (name is str, actor) in a:
+                a = Agent(name, actor)
+            self.agents.append(a)
+        self.env = {}
+        self.step(sequential_update=sequential_init)
+
+    def step(self, sequential_update=True):
+        """Iterate one step."""
+        if sequential_update:
+            for a in self.agents:
+                self.env[a.name] = a(self.env)
+        else:
+            self.env = {a.name: a(self.env) for a in self.agents}
+        return self.env
+
+    def run(self, max_steps=1000, sequential_update=True):
+        """Iterate until equilibrium or max_steps is reached."""
+        for i in tqdm(range(max_steps)):
+            prev_env = deepcopy(self.env)
+            self.step(sequential_update=sequential_update)
+            if self.env == prev_env:
+                break
+        return self.env

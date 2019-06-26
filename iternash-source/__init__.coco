@@ -1,0 +1,2 @@
+from iternash.agent import *
+from iternash.game import *

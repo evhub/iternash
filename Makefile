@@ -2,15 +2,18 @@
 install: build
 	pip install -Ue .
 
-.PHONY: setup
-setup:
-	pip install -U setuptools pip
-	pip install -U "coconut-develop[watch]"
-
 .PHONY: build
 build:
 	coconut setup.coco --no-tco --strict
 	coconut "iternash-source" iternash --no-tco --strict --jobs sys
+
+.PHONY: setup
+setup:
+	pip install -U setuptools pip coconut-develop[watch]
+
+.PHONY: test
+test: install
+	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: upload
 upload: clean install

@@ -7,4 +7,7 @@ setuptools.setup(
     url="https://github.com/evhub/iternash",
     author="Evan Hubinger",
     packages=setuptools.find_packages(),
+    requirements=[
+        "tqdm",
+    ],
 )

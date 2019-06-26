@@ -1,0 +1,34 @@
+import random
+
+from iternash import (
+    expr_agent,
+    Game,
+)
+
+
+p_agent = expr_agent(
+    name="p",
+    expr="(n/(n+m) * (r_y - r_x)/(r_y - r_f))**(1/m)",
+    default=0.9,
+)
+
+
+n_agent = expr_agent(
+    name="n",
+    expr="m * (1-eps)/eps",
+)
+
+
+game = Game(
+    ("m", 100),
+    ("eps", 0.01),
+    ("r_y", 1),
+    ("r_x", 0),
+    ("r_f", 0),
+    n_agent,
+    p_agent,
+)
+
+
+if __name__ == "__main__":
+    game.run() |> print
