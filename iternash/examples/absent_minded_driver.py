@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x293e044d
+# __coconut_hash__ = 0x9508a130
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -36,11 +36,12 @@ p_agent = expr_agent(name="p", expr="""(
 n_agent = expr_agent(name="n", expr="m/p_m * (1-eps)/eps")
 
 
-PC_agent = expr_agent(name="P_C", expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))")
+PC_agent = expr_agent(name="PC", expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))")
 
 
 game = Game(d=2, p_m=0.5, m=100, eps=0.01, n=n_agent, r_y=1, r_x=0, r_f=0, p=p_agent, PC=PC_agent)
 
 
 if __name__ == "__main__":
+    game.attach(lambda env: print("p = {p}; PC = {PC}".format(**env)))
     (print)(game.run())

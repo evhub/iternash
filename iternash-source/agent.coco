@@ -1,20 +1,25 @@
 no_default = object()
 
 class Agent:
-    def __init__(self, name is str, actor, default=no_default):
+    def __init__(self, name is str, actor, default=no_default, debug=False):
         self.name = name
         if isinstance(actor, Agent):
             self.actor = actor.actor
             self.default = default if default is not no_default else actor.default
+            self.debug = debug or actor.debug
         else:
             self.actor = actor
             self.default = default
+            self.debug = debug
 
     def __call__(self, env):
         if callable(self.actor):
-            return self.actor(env)
+            action = self.actor(env)
         else:
-            return self.actor
+            action = self.actor
+        if self.debug:
+            print(f"{self.name} = {action}")
+        return action
 
     def __str__(self) =
         self.name
@@ -36,8 +41,8 @@ default_expr_aliases = {
     "^": "**",
 }
 
-def expr_agent(name, expr, default=no_default, globs=None, aliases=default_expr_aliases) =
+def expr_agent(name, expr, default=no_default, globs=None, aliases=default_expr_aliases, debug=False):
     """Construct an agent that evaluates the given expression."""
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    Agent(name, eval$(expr, globs), default)
+    return Agent(name, eval$(expr, globs), default=default, debug=debug)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x260df1f0
+# __coconut_hash__ = 0x1c53b406
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -48,6 +48,8 @@ class Game(_coconut.object):
 
         self.env = {}
         self.agents = []
+        self.handlers = []
+        self.i = 0
         for a in _coconut.itertools.chain.from_iterable((_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to = a
             _coconut_match_check = False
@@ -65,6 +67,16 @@ class Game(_coconut.object):
             self.agents.append(a)
         self.step(sequential_update=sequential_init)
 
+    def attach(self, handler, period=100):
+        """Attach a handler to be called at interval period."""
+        self.handlers.append((handler, period))
+
+    def call_handlers(self):
+        """Call all attached handlers."""
+        for handler, period in self.handlers:
+            if self.i % period == 0:
+                handler(self.env)
+
     def step(self, sequential_update=True):
         """Iterate one step."""
         if sequential_update:
@@ -72,11 +84,13 @@ class Game(_coconut.object):
                 self.env[a.name] = a(self.env)
         else:
             self.env = dict(((a.name), (a(self.env))) for a in self.agents)
+        self.i += 1
+        self.call_handlers()
         return self.env
 
     def run(self, max_steps=1000, sequential_update=True):
         """Iterate until equilibrium or max_steps is reached."""
-        for i in tqdm(range(max_steps)):
+        for _ in tqdm(range(max_steps)):
             prev_env = deepcopy(self.env)
             self.step(sequential_update=sequential_update)
             if self.env == prev_env:

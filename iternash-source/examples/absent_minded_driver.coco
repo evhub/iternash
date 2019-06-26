@@ -24,7 +24,7 @@ n_agent = expr_agent(
 
 
 PC_agent = expr_agent(
-    name="P_C",
+    name="PC",
     expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))",
 )
 
@@ -44,4 +44,5 @@ game = Game(
 
 
 if __name__ == "__main__":
+    game.attach(env -> print("p = {p}; PC = {PC}".format(**env)))
     game.run() |> print
