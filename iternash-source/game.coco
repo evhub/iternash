@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from tqdm import tqdm
 
 from iternash.util import Str
@@ -7,33 +5,30 @@ from iternash.agent import Agent
 
 
 class Game:
-    """Game class. See Game.setup for information on __init__ parameters."""
+    """Game class.
+
+    Parameters:
+    - _name_ is the name of the game.
+    - _agents_ are agents to include in the environment.
+    - _named_agents_ are names mapped to agents to give those names to
+        in the environment.
+    - _immediate_update_ controls whether new actions are added to the env
+        immediately or only at the end of each step (defaults to True). When
+        this is on the order of agents passed to Game should be the order in
+        which they should be evaluated at each step.
+    """
     final_step = False
 
-    def __init__(self, *args, **kwargs):
-        self.env = {"game": self}
-        self.agents = {}
-        self.handlers = []
-        self.immediate_update = True
-        self.setup(*args, **kwargs)
-
-    match def setup(self, name is Str, *agents, immediate_update=None, **named_agents):
-        """Initialize the game with agents/variables.
-
-        Parameters:
-        - _name_ is the name of the game.
-        - _agents_ are agents to include in the environment.
-        - _named_agents_ are names mapped to agents to give those names to
-            in the environment.
-        - _immediate_update_ controls whether new actions are added to the env
-            immediately or only at the end of each step (defaults to True). When
-            this is on the order of agents passed to Game should be the order in
-            which they should be evaluated at each step.
-        """
+    match def __init__(self, name is Str, *agents, immediate_update=True, **named_agents):
         self.name = name
-        if immediate_update is not None:
-            self.immediate_update = immediate_update
+        self.env = {"game": self}
+        self.agents = []
+        self.immediate_update = immediate_update
         self.i = 0
+        self.add_agents(*agents, **named_agents)
+
+    def add_agents(self, *agents, **named_agents):
+        """Add the given agents/variables to the game."""
         for a in agents :: named_agents.items():
             match (name, actor) in a:
                 if not callable(actor):
@@ -45,22 +40,17 @@ class Game:
                 else:
                     a = Agent(name, actor)
             assert isinstance(a, Agent), f"not isinstance({a}, Agent)"
-            if a.name is not None:
-                if a.has_default():
-                    self.env[a.name] = a.default
-                self.agents[a.name] = a
-        self.step()
+            if a.has_default() and a.name is not None:
+                self.env[a.name] = a.default
+            self.agents.append(a)
 
-    def attach(self, handler, period=100):
-        """Attach a handler to be called at interval _period_. _handler_ should be
-        some function which takes in an env."""
-        self.handlers.append((handler, period))
-
-    def call_handlers(self):
-        """Call all attached handlers."""
-        for handler, period in self.handlers:
-            if self.i % period == 0:
-                handler(self.env)
+    def attach(self, agent, period, name=None):
+        """Add an agent to be called at interval _period_."""
+        if isinstance(agent, Agent):
+            agent = agent.clone(name=name, period=period)
+        else:
+            agent = Agent(name, agent, period=period)
+        self.agents.append(agent)
 
     def step(self, final=False):
         """Perform one full step of action selection."""
@@ -72,27 +62,21 @@ class Game:
                 self.final_step = False
         else:
             updating_env = self.env if self.immediate_update else {}
-            for a in self.agents.values():
-                action = a(self.env)
-                if a.name is not None:
-                    updating_env[a.name] = action
+            for a in self.agents:
+                if self.i % a.period == 0:
+                    action = a(self.env)
+                    if a.name is not None:
+                        updating_env[a.name] = action
             if not self.immediate_update:
                 self.env.update(updating_env)
             self.i += 1
-            self.call_handlers()
             return self.env
 
-    def run(self, max_steps=500):
+    def run(self, max_steps):
         """Iterate until equilibrium or _max_steps_ is reached."""
         for _ in tqdm(range(max_steps)):
-            prev_env = deepcopy(self.env)
+            prev_env = self.env.copy()
             self.step()
             if self.env == prev_env:
                 break
         return self.step(final=True)
-
-    def clone(self, name=None, *args, **kwargs):
-        """Create a copy of the environment (optionally) with new parameters."""
-        new_game = deepcopy(self)
-        new_game.setup(name ?? self.name, *args, **kwargs)
-        return new_game

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x87533309
+# __coconut_hash__ = 0xa2eaa039
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -20,6 +20,9 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
+sys = _coconut_sys
+
+
 Str = (str, bytes)
 
 
@@ -27,3 +30,18 @@ def printret(obj):
     """Print then return _obj_."""
     print(obj)
     return obj
+
+
+def clip(x, m=sys.float_info.epsilon, M=1 - sys.float_info.epsilon):
+    """Clip x into [m, M] (defaults to [eps, 1-eps])."""
+    if x <= m:
+        return m
+    elif x >= M:
+        return M
+    else:
+        return x
+
+
+def real(x):
+    """Get only the real part of x."""
+    return x.real if isinstance(x, complex) else x

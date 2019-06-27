@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x25f12a67
+# __coconut_hash__ = 0x88702e77
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -40,12 +40,14 @@ class Agent(_coconut.object):
         for no name.
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
+    - _period_ is the period at which to call the agent (default is 1).
     """
 
-    def __init__(self, name, actor, default=no_default):
+    def __init__(self, name, actor, default=no_default, period=1):
         self.name = name
         self.actor = actor
         self.default = default
+        self.period = period
 
     def __call__(self, env):
         """Call the agent's actor function."""
@@ -55,11 +57,11 @@ class Agent(_coconut.object):
         """Whether the agent has a default."""
         return self.default is not no_default
 
-    def clone(self, name=None, actor=None, default=_no_default_passed):
+    def clone(self, name=None, actor=None, default=_no_default_passed, period=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _no_default_passed:
             default = self.default
-        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default)
+        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period))
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -92,24 +94,26 @@ def agent(name_or_agent_func=None, **kwargs):
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
+default_vars = {"math": math}
+
 default_expr_aliases = {"\n": "", "^": "**"}
 
-def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwargs):
+def expr_agent(name, expr, vars=default_vars, aliases=default_expr_aliases, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
     - _name_ is the name the agent's action will be assigned in the environment.
     - _expr_ is an expression to be evaluated in the environment to determine the
         agent's action.
-    - _globs_ are the globals to be used for evaluating the agent's action (the
-        default is vars(math)).
+    - _vars_ are the globals to be used for evaluating the agent's action (the
+        default is {"math": math}).
     - _aliases_ are simple replacements to be made to the expr before evaluating it
         (the default is {"\\n": "", "^": "**"}).
     - _kwargs_ are passed to `Agent`.
     """
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    return Agent(name, _coconut.functools.partial(eval, expr, globs), **kwargs)
+    return Agent(name, _coconut.functools.partial(eval, expr, vars), **kwargs)
 
 
 def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs):
@@ -144,7 +148,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
     return Agent(name, bbopt_actor, **kwargs)
 
 
-def debug_agent(debug_str, name=None):
+def debug_agent(debug_str, period, name=None, **kwargs):
     """Construct an agent that prints a formatted debug string. Most useful
     with Game.attach to print at a specific interval.
 
@@ -153,4 +157,4 @@ def debug_agent(debug_str, name=None):
             is roughly equivalent to
         Agent(None, env -> print("x = {x}".format(**env)))
     """
-    return Agent(name, lambda env: (printret)(debug_str.format(**env)))
+    return Agent(name, lambda env: (printret)(debug_str.format(**env)), period=period, **kwargs)
