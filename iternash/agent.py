@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x205bbf4c
+# __coconut_hash__ = 0xa7934180
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -27,8 +27,18 @@ from bbopt.constants import default_alg
 
 
 no_default = object()
+_no_default_passed = object()
 
 class Agent(_coconut.object):
+    """Agent class.
+
+    Parameters:
+    - _name_ is the key to assign this agent's action in the environment.
+    - _actor_ is a function from the environment to the agent's action.
+    - _default_ is the agent's initial action.
+    - _debug_ controls whether actions should be printed.
+    """
+
     def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
         _coconut_match_check = False
         _coconut_FunctionMatchError = _coconut_get_function_match_error()
@@ -53,34 +63,47 @@ class Agent(_coconut.object):
             raise _coconut_match_err
 
         self.name = name
-        if isinstance(actor, Agent):
-            self.actor = actor.actor
-            self.default = default if default is not no_default else actor.default
-            self.debug = debug or actor.debug
-        else:
-            self.actor = actor
-            self.default = default
-            self.debug = debug
+        self.actor = actor
+        self.default = default
+        self.debug = debug
 
     def __call__(self, env):
-        if callable(self.actor):
-            action = self.actor(env)
-        else:
-            action = self.actor
+        """Call the agent's actor function."""
+        action = self.actor(env)
         if self.debug:
             print("{_coconut_format_0} = {_coconut_format_1}".format(_coconut_format_0=(self.name), _coconut_format_1=(action)))
         return action
 
-    def __str__(self):
-        return self.name
-
     def has_default(self):
+        """Whether the agent has a default."""
         return self.default is not no_default
 
+    def clone(self, name=None, actor=None, default=_no_default_passed, debug=None):
+        """Create a copy of the agent (optionally) with new parameters."""
+        if default is _no_default_passed:
+            default = self.default
+        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default, (self.debug if debug is None else debug))
 
-def agent(name_or_agent_func, **kwargs):
-    """Decorator for easily constructing Agents."""
-    if isinstance(name_or_agent_func, str):
+
+def agent(name_or_agent_func=None, **kwargs):
+    """Decorator for easily constructing agents.
+
+    If a string is passed to the decorator it will use that as the name,
+    otherwise the name is inferred from the name of the function.
+
+    Examples:
+
+        @agent  # or @agent()
+        def x(env):
+            return ...
+
+        @agent("x")
+        def x_agent(env):
+            return ...
+    """
+    if name_or_agent_func is None:
+        return agent
+    elif isinstance(name_or_agent_func, str):
         return _coconut.functools.partial(Agent, name, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
@@ -89,14 +112,37 @@ def agent(name_or_agent_func, **kwargs):
 default_expr_aliases = {"\n": "", "^": "**"}
 
 def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwargs):
-    """Construct an agent that evaluates the given expression."""
+    """Construct an agent that computes its action by evaluating an expression.
+
+    Parameters:
+    - _name_ is the name the agent's action will be assigned in the environment.
+    - _expr_ is an expression to be evaluated in the environment to determine the
+        agent's action.
+    - _globs_ are the globals to be used for evaluating the agent's action (the
+        default is vars(math)).
+    - _aliases_ are simple replacements to be made to the expr before evaluating it
+        (the default is "\n" -> "" and "^" -> "**").
+    - _kwargs_ are passed to `Agent`.
+    """
     for k, v in aliases.items():
         expr = expr.replace(k, v)
     return Agent(name, _coconut.functools.partial(eval, expr, globs), **kwargs)
 
 
-def bbopt_agent(name, rand_actor, util_func, file, alg=default_alg, **kwargs):
-    """Construct an agent that uses BBopt to maximize some utility."""
+def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs):
+    """Construct an agent that selects its action using a black box optimizer.
+
+    Parameters:
+    - _name_ is the name the agent's action will be assigned in the environment.
+    - _tunable_actor_ is a function from (bb, env) to an action (see the BBopt docs
+        for how to use the bb object to define tunable parameters).
+    - _util_func_ is the a function from the env resulting from the agent's action
+        to the utility it should get for that action.
+    - _file_ should be set to __file__.
+    - _alg_ determines the black box optimization algorithm to use (the default
+        is tree_structured_parzen_estimator).
+    - _kwargs_ are passed to `Agent`.
+    """
     bb = BlackBoxOptimizer(file=file, tag=name)
     first_action = [True]
     def bbopt_actor(env):
@@ -105,5 +151,5 @@ def bbopt_agent(name, rand_actor, util_func, file, alg=default_alg, **kwargs):
         else:
             bb.maximize(util_func(env))
         bb.run(alg=alg if not env["final_step"] else None)
-        return rand_actor(bb, env)
+        return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, **kwargs)

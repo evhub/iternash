@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x574ca505
+# __coconut_hash__ = 0xdd92190
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -59,13 +59,17 @@ nonseq_2d_p_agent = expr_agent(name="p", expr="""(
 nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - (m-1)*(1-p)*p^(m-1) - p**m", default=0.1)
 
 
-# BBopt n agent that attempts to set PC to eps
-bbopt_n_agent = bbopt_agent(name="n", rand_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__)
+# black-box-optimized n agent that attempts to set PC to eps
+bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__)
 
 
+# absent-minded driver game where catastrophe occurs if there are
+#  ever d sequential defections during deployment
 seq_d_game = Game(d=2, n=conservative_n_agent, p=seq_d_p_agent, PC=seq_d_PC_agent, **common_params)
 
 
+# absent-minded driver game where catastrophe occurs upon the
+#  second defection during deployment
 nonseq_2d_game = Game(n=bbopt_n_agent, p=nonseq_2d_p_agent, PC=nonseq_2d_PC_agent, **common_params)
 
 

@@ -9,7 +9,7 @@ from iternash import (
 
 
 common_params = dict(
-    # number of testing/deployment episodes
+    # number of deployment episodes
     m=100,
     # desired PC for the n agent to attempt to achieve
     eps=0.01,
@@ -17,13 +17,13 @@ common_params = dict(
     p_mod=0.9,
     # utility for defecting during training
     r_n=0,
-    # utility for defecting during testing/deployment
+    # utility for defecting during deployment
     r_m=1,
     # utility for never defecting
     r_f=0,
-    # minimum n/m for the BBopt n agent to check
+    # minimum n/m for the black-box-optimized n agent to check
     min_n_m=0.1,
-    # maximum n/m for the BBopt n agent to check
+    # maximum n/m for the black-box-optimized n agent to check
     max_n_m=10000,
 )
 
@@ -78,15 +78,18 @@ nonseq_2d_PC_agent = expr_agent(
 )
 
 
-# BBopt n agent that attempts to set PC to eps
+# black-box-optimized n agent that attempts to set PC to eps
 bbopt_n_agent = bbopt_agent(
     name="n",
-    rand_actor=(bb, env) -> int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
+    tunable_actor=(bb, env) ->
+        int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
     util_func=env -> -abs(log(env["PC"]) - log(env["eps"])),
     file=__file__,
 )
 
 
+# absent-minded driver game where catastrophe occurs if there are
+#  ever d sequential defections during deployment
 seq_d_game = Game(
     # necessary number of sequential defections
     d=2,
@@ -97,6 +100,8 @@ seq_d_game = Game(
 )
 
 
+# absent-minded driver game where catastrophe occurs upon the
+#  second defection during deployment
 nonseq_2d_game = Game(
     n=bbopt_n_agent,
     p=nonseq_2d_p_agent,

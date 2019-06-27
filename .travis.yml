@@ -1,0 +1,25 @@
+language: python
+notifications:
+  email:
+    on_failure: change
+sudo: false
+cache: pip
+python:
+- '2.7'
+- '3.4'
+- '3.5'
+- '3.6'
+install:
+- make setup
+script:
+- make test
+deploy:
+  provider: pypi
+  edge:
+    branch: v1.8.45
+  user: evhub-develop
+  password:
+    secure: cWBGJEFssBFMEH1nueEjr6lcgMT3+OXytqInApq3BiPzaaJGqfR08qPBnLf54khNF5c1PqUU/gakcV4YxxKnIx7D8mSgnbzHdAlDfPKvNtRFogsPkwhcIDV9GU0SScNwd67XCnKmcLgcTd+gLH0L9lvBIEyP93a1QNRyyXnfDbdhHM5tKJZFP5z7j6sCFba/ceHXApvjd4gFmAC+3jdaHndg70z3KrXgFrRbkvk4KnD6xNfLmIHGsJ7aQ9w7PJ272blWFNbSqsZzzfXGF6kODtWLTnCi7SCaJtJwmmRxsMcNE81YK9dmh5IIX9Jbj4izSoV+CikiIhwYs0y9JqGaEDIeNevWQYFx4mCuqx7tRLlszHhVfjiMERyJ2gcNsSNp+aNOyZ8I70Jxz0GVFX8NLO4m8lsia5trr7oZsVAAR0b4yOmUq8aYEcvfb/ikbWnlOrCLQ8SRsygicjYBtfx6TdnyrNQX3MBucftxkcqulH5/i7qRiVSM0Z4tJuBIcXlroByV8jfNkx3BZVTZfkEPenuJGpnh6VqRFKllIad2R21XyZ6GxYwZTSzBHeH4R27HyE8z2QV0ylfN99/LNuZJgOyMYf/n/3XKO2IDub0kSEQILABGifK56SlkG8lOoflRX9ljQ9mANmQtFlHr69axUGW0wjpchLPsrEFTmcg5OyE=
+  on:
+    distributions: sdist bdist_wheel
+    repo: evhub/iternash

@@ -6,28 +6,47 @@ from iternash.agent import Agent
 
 
 class Game:
+    """Game class. See Game.setup for information on __init__ parameters."""
+
     def __init__(self, *args, **kwargs):
         self.env = {"final_step": False}
         self.agents = {}
         self.handlers = []
+        self.immediate_update = True
         self.setup(*args, **kwargs)
 
-    match def setup(self, *agents, sequential_init=True, **named_agents):
-        """Add new agents/variables."""
+    match def setup(self, *agents, immediate_update=None, **named_agents):
+        """Add new agents/variables.
+
+        Parameters:
+        - _agents_ are agents to include in the environment.
+        - _named_agents_ are names mapped to agents to give those names to
+            in the environment.
+        - _immediate_update_ controls whether new actions are added to the environment
+            immediately or only at the end of each step (defaults to True).
+        """
+        if immediate_update is not None:
+            self.immediate_update = immediate_update
         self.i = 0
         for a in agents :: named_agents.items():
-            match (name is str, actor) in a:
+            match (name, actor) in a:
                 if not callable(actor):
+                    assert isinstance(name, str), f"not isinstance({name}, str)"
                     self.env[name] = actor
                     continue
-                a = Agent(name, actor)
+                elif isinstance(actor, Agent):
+                    a = actor.clone(name=name)
+                else:
+                    a = Agent(name, actor)
+            assert isinstance(a, Agent), f"not isinstance({a}, Agent)"
             if a.has_default():
                 self.env[a.name] = a.default
             self.agents[a.name] = a
-        self.step(sequential_update=sequential_init)
+        self.step()
 
     def attach(self, handler, period=100):
-        """Attach a handler to be called at interval period."""
+        """Attach a handler to be called at interval _period_. _handler_ should be
+        some function which takes in an env."""
         self.handlers.append((handler, period))
 
     def call_handlers(self):
@@ -36,9 +55,9 @@ class Game:
             if self.i % period == 0:
                 handler(self.env)
 
-    def step(self, sequential_update=True):
-        """Iterate one step."""
-        if sequential_update:
+    def step(self):
+        """Perform one full step of action selection."""
+        if self.immediate_update:
             for a in self.agents.values():
                 self.env[a.name] = a(self.env)
         else:
@@ -47,25 +66,25 @@ class Game:
         self.call_handlers()
         return self.env
 
-    def final_step(self, sequential_update=True):
+    def final_step(self):
         """Perform a final step with BBopt parameters set to serving."""
         self.env["final_step"] = True
         try:
-            return self.step(sequential_update=sequential_update).copy()
+            return self.step().copy()
         finally:
             self.env["final_step"] = False
 
-    def run(self, max_steps=500, sequential_update=True):
-        """Iterate until equilibrium or max_steps is reached."""
+    def run(self, max_steps=500):
+        """Iterate until equilibrium or _max_steps_ is reached."""
         for _ in tqdm(range(max_steps)):
             prev_env = deepcopy(self.env)
-            self.step(sequential_update=sequential_update)
+            self.step()
             if self.env == prev_env:
                 break
         return self.final_step()
 
     def clone(self, *args, **kwargs):
-        """Create a new copy of the environment with new agents."""
+        """Create a copy of the environment (optionally) with new parameters."""
         new_game = deepcopy(self)
         new_game.setup(*args, **kwargs)
         return new_game
