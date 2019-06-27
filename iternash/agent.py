@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa7934180
+# __coconut_hash__ = 0x68c5ad75
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -25,6 +25,8 @@ import math
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
+from iternash.util import Str
+
 
 no_default = object()
 _no_default_passed = object()
@@ -48,7 +50,7 @@ class Agent(_coconut.object):
             _coconut_match_temp_2 = _coconut_match_to_args[2] if _coconut.len(_coconut_match_to_args) > 2 else _coconut_match_to_kwargs.pop("actor")
             _coconut_match_temp_3 = _coconut_match_to_args[3] if _coconut.len(_coconut_match_to_args) > 3 else _coconut_match_to_kwargs.pop("default") if "default" in _coconut_match_to_kwargs else no_default
             _coconut_match_temp_4 = _coconut_match_to_args[4] if _coconut.len(_coconut_match_to_args) > 4 else _coconut_match_to_kwargs.pop("debug") if "debug" in _coconut_match_to_kwargs else False
-            if (_coconut.isinstance(_coconut_match_temp_1, str)) and (not _coconut_match_to_kwargs):
+            if (_coconut.isinstance(_coconut_match_temp_1, Str)) and (not _coconut_match_to_kwargs):
                 self = _coconut_match_temp_0
                 name = _coconut_match_temp_1
                 actor = _coconut_match_temp_2
@@ -57,8 +59,8 @@ class Agent(_coconut.object):
                 _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def __init__(self, name is str, actor, default=no_default, debug=False):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'def __init__(self, name is str, actor, default=no_default, debug=False):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def __init__(self, name is Str, actor, default=no_default, debug=False):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'def __init__(self, name is Str, actor, default=no_default, debug=False):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
@@ -103,7 +105,7 @@ def agent(name_or_agent_func=None, **kwargs):
     """
     if name_or_agent_func is None:
         return agent
-    elif isinstance(name_or_agent_func, str):
+    elif isinstance(name_or_agent_func, Str):
         return _coconut.functools.partial(Agent, name, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)

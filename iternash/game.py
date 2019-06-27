@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xfaeb925b
+# __coconut_hash__ = 0x8fa63e1f
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -24,6 +24,7 @@ from copy import deepcopy
 
 from tqdm import tqdm
 
+from iternash.util import Str
 from iternash.agent import Agent
 
 
@@ -76,7 +77,7 @@ class Game(_coconut.object):
                 _coconut_match_check = True
             if _coconut_match_check:
                 if not callable(actor):
-                    assert isinstance(name, str), "not isinstance({_coconut_format_0}, str)".format(_coconut_format_0=(name))
+                    assert isinstance(name, Str), "not isinstance({_coconut_format_0}, Str)".format(_coconut_format_0=(name))
                     self.env[name] = actor
                     continue
                 elif isinstance(actor, Agent):

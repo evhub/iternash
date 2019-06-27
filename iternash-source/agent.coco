@@ -3,6 +3,8 @@ import math
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
+from iternash.util import Str
+
 
 no_default = object()
 _no_default_passed = object()
@@ -17,7 +19,7 @@ class Agent:
     - _debug_ controls whether actions should be printed.
     """
 
-    def __init__(self, name is str, actor, default=no_default, debug=False):
+    def __init__(self, name is Str, actor, default=no_default, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
@@ -59,7 +61,7 @@ def agent(name_or_agent_func=None, **kwargs):
     """
     if name_or_agent_func is None:
         return agent
-    elif isinstance(name_or_agent_func, str):
+    elif isinstance(name_or_agent_func, Str):
         return Agent$(name, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
