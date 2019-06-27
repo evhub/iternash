@@ -1,10 +1,8 @@
-import random
-from math import log
-
 from iternash import (
+    Game,
     expr_agent,
     bbopt_agent,
-    Game,
+    debug_agent,
 )
 
 
@@ -84,7 +82,7 @@ bbopt_n_agent = bbopt_agent(
     name="n",
     tunable_actor=(bb, env) ->
         int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
-    util_func=env -> -abs(log(env["PC"]) - log(env["eps"])),
+    util_func=expr_agent(None, "-abs(log(PC) - log(eps))"),
     file=__file__,
     default=common_params["m"],
 )
@@ -93,11 +91,11 @@ bbopt_n_agent = bbopt_agent(
 # absent-minded driver game where catastrophe occurs if there are
 #  ever d sequential defections during deployment
 seq_d_game = Game(
+    conservative_n_agent,
+    seq_d_p_agent,
+    seq_d_PC_agent,
     # necessary number of sequential defections
     d=2,
-    n=conservative_n_agent,
-    p=seq_d_p_agent,
-    PC=seq_d_PC_agent,
     **common_params,
 )
 
@@ -105,9 +103,9 @@ seq_d_game = Game(
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment
 nonseq_2d_game = Game(
-    n=bbopt_n_agent,
-    p=nonseq_2d_p_agent,
-    PC=nonseq_2d_PC_agent,
+    bbopt_n_agent,
+    nonseq_2d_p_agent,
+    nonseq_2d_PC_agent,
     **common_params,
 )
 
@@ -115,9 +113,9 @@ nonseq_2d_game = Game(
 
 if __name__ == "__main__":
     print("Running sequential defection game...")
-    seq_d_game.attach(env -> print("p = {p}; PC = {PC}".format(**env)))
+    seq_d_game.attach(debug_agent("p = {p}; PC = {PC}"))
     seq_d_game.run() |> print
 
     print("Running non-sequential two defection game...")
-    nonseq_2d_game.attach(env -> print("n = {n}; p = {p}; PC = {PC}".format(**env)))
+    nonseq_2d_game.attach(debug_agent("n = {n}; p = {p}; PC = {PC}"))
     nonseq_2d_game.run() |> print

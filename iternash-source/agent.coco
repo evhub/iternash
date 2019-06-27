@@ -3,7 +3,7 @@ import math
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
-from iternash.util import Str
+from iternash.util import Str, printret
 
 
 no_default = object()
@@ -13,34 +13,30 @@ class Agent:
     """Agent class.
 
     Parameters:
-    - _name_ is the key to assign this agent's action in the environment.
+    - _name_ is the key to assign this agent's action in the environment, or None
+        for no name.
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
-    - _debug_ controls whether actions should be printed.
     """
 
-    def __init__(self, name is Str, actor, default=no_default, debug=False):
+    def __init__(self, name, actor, default=no_default):
         self.name = name
         self.actor = actor
         self.default = default
-        self.debug = debug
 
-    def __call__(self, env):
+    def __call__(self, env) =
         """Call the agent's actor function."""
-        action = self.actor(env)
-        if self.debug:
-            print(f"{self.name} = {action}")
-        return action
+        self.actor(env)
 
     def has_default(self) =
         """Whether the agent has a default."""
         self.default is not no_default
 
-    def clone(self, name=None, actor=None, default=_no_default_passed, debug=None):
+    def clone(self, name=None, actor=None, default=_no_default_passed):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _no_default_passed:
             default = self.default
-        return Agent(name ?? new_name, actor ?? self.actor, default, debug ?? self.debug)
+        return Agent(name ?? new_name, actor ?? self.actor, default)
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -51,17 +47,21 @@ def agent(name_or_agent_func=None, **kwargs):
 
     Examples:
 
-        @agent  # or @agent()
-        def x(env):
-            return ...
+        @agent()  # or just @agent
+        def x(env) =
+            ...
 
         @agent("x")
-        def x_agent(env):
-            return ...
+        def x_agent(env) =
+            ...
+
+        @agent("x", default=...)
+        def x_agent(env) =
+            ...
     """
     if name_or_agent_func is None:
-        return agent
-    elif isinstance(name_or_agent_func, Str):
+        return agent$(**kwargs)
+    elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
         return Agent$(name, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
@@ -82,7 +82,7 @@ def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwa
     - _globs_ are the globals to be used for evaluating the agent's action (the
         default is vars(math)).
     - _aliases_ are simple replacements to be made to the expr before evaluating it
-        (the default is "\n" -> "" and "^" -> "**").
+        (the default is {"\\n": "", "^": "**"}).
     - _kwargs_ are passed to `Agent`.
     """
     for k, v in aliases.items():
@@ -114,3 +114,15 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
         bb.run(alg=alg if not env["final_step"] else None)
         return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, **kwargs)
+
+
+def debug_agent(debug_str, name=None) =
+    """Construct an agent that prints a formatted debug string. Most useful
+    with Game.attach to print at a specific interval.
+
+    Example:
+        debug_agent("x = {x}")
+            is roughly equivalent to
+        Agent(None, env -> print("x = {x}".format(**env)))
+    """
+    Agent(name, env -> debug_str.format(**env) |> printret)

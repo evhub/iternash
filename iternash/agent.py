@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x68c5ad75
+# __coconut_hash__ = 0xb6a25f59
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -26,6 +26,7 @@ from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
 from iternash.util import Str
+from iternash.util import printret
 
 
 no_default = object()
@@ -35,56 +36,30 @@ class Agent(_coconut.object):
     """Agent class.
 
     Parameters:
-    - _name_ is the key to assign this agent's action in the environment.
+    - _name_ is the key to assign this agent's action in the environment, or None
+        for no name.
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
-    - _debug_ controls whether actions should be printed.
     """
 
-    def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
-        _coconut_match_check = False
-        _coconut_FunctionMatchError = _coconut_get_function_match_error()
-        if (_coconut.len(_coconut_match_to_args) <= 5) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "self" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "name" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 2, "actor" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 3, "default" in _coconut_match_to_kwargs)) <= 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 4, "debug" in _coconut_match_to_kwargs)) <= 1):
-            _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("self")
-            _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("name")
-            _coconut_match_temp_2 = _coconut_match_to_args[2] if _coconut.len(_coconut_match_to_args) > 2 else _coconut_match_to_kwargs.pop("actor")
-            _coconut_match_temp_3 = _coconut_match_to_args[3] if _coconut.len(_coconut_match_to_args) > 3 else _coconut_match_to_kwargs.pop("default") if "default" in _coconut_match_to_kwargs else no_default
-            _coconut_match_temp_4 = _coconut_match_to_args[4] if _coconut.len(_coconut_match_to_args) > 4 else _coconut_match_to_kwargs.pop("debug") if "debug" in _coconut_match_to_kwargs else False
-            if (_coconut.isinstance(_coconut_match_temp_1, Str)) and (not _coconut_match_to_kwargs):
-                self = _coconut_match_temp_0
-                name = _coconut_match_temp_1
-                actor = _coconut_match_temp_2
-                default = _coconut_match_temp_3
-                debug = _coconut_match_temp_4
-                _coconut_match_check = True
-        if not _coconut_match_check:
-            _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def __init__(self, name is Str, actor, default=no_default, debug=False):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'def __init__(self, name is Str, actor, default=no_default, debug=False):'
-            _coconut_match_err.value = _coconut_match_to_args
-            raise _coconut_match_err
-
+    def __init__(self, name, actor, default=no_default):
         self.name = name
         self.actor = actor
         self.default = default
-        self.debug = debug
 
     def __call__(self, env):
         """Call the agent's actor function."""
-        action = self.actor(env)
-        if self.debug:
-            print("{_coconut_format_0} = {_coconut_format_1}".format(_coconut_format_0=(self.name), _coconut_format_1=(action)))
-        return action
+        return self.actor(env)
 
     def has_default(self):
         """Whether the agent has a default."""
         return self.default is not no_default
 
-    def clone(self, name=None, actor=None, default=_no_default_passed, debug=None):
+    def clone(self, name=None, actor=None, default=_no_default_passed):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _no_default_passed:
             default = self.default
-        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default, (self.debug if debug is None else debug))
+        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default)
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -95,17 +70,21 @@ def agent(name_or_agent_func=None, **kwargs):
 
     Examples:
 
-        @agent  # or @agent()
-        def x(env):
-            return ...
+        @agent()  # or just @agent
+        def x(env) =
+            ...
 
         @agent("x")
-        def x_agent(env):
-            return ...
+        def x_agent(env) =
+            ...
+
+        @agent("x", default=...)
+        def x_agent(env) =
+            ...
     """
     if name_or_agent_func is None:
-        return agent
-    elif isinstance(name_or_agent_func, Str):
+        return _coconut.functools.partial(agent, **kwargs)
+    elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
         return _coconut.functools.partial(Agent, name, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
@@ -123,7 +102,7 @@ def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwa
     - _globs_ are the globals to be used for evaluating the agent's action (the
         default is vars(math)).
     - _aliases_ are simple replacements to be made to the expr before evaluating it
-        (the default is "\n" -> "" and "^" -> "**").
+        (the default is {"\\n": "", "^": "**"}).
     - _kwargs_ are passed to `Agent`.
     """
     for k, v in aliases.items():
@@ -155,3 +134,15 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
         bb.run(alg=alg if not env["final_step"] else None)
         return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, **kwargs)
+
+
+def debug_agent(debug_str, name=None):
+    """Construct an agent that prints a formatted debug string. Most useful
+    with Game.attach to print at a specific interval.
+
+    Example:
+        debug_agent("x = {x}")
+            is roughly equivalent to
+        Agent(None, env -> print("x = {x}".format(**env)))
+    """
+    return Agent(name, lambda env: (printret)(debug_str.format(**env)))

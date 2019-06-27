@@ -1,1 +1,7 @@
 Str = (str, bytes)
+
+
+def printret(obj) =
+    """Print then return _obj_."""
+    print(obj)
+    obj

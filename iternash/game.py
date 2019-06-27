@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8fa63e1f
+# __coconut_hash__ = 0x773795b4
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -85,9 +85,10 @@ class Game(_coconut.object):
                 else:
                     a = Agent(name, actor)
             assert isinstance(a, Agent), "not isinstance({_coconut_format_0}, Agent)".format(_coconut_format_0=(a))
-            if a.has_default():
-                self.env[a.name] = a.default
-            self.agents[a.name] = a
+            if a.name is not None:
+                if a.has_default():
+                    self.env[a.name] = a.default
+                self.agents[a.name] = a
         self.step()
 
     def attach(self, handler, period=100):
@@ -103,11 +104,13 @@ class Game(_coconut.object):
 
     def step(self):
         """Perform one full step of action selection."""
-        if self.immediate_update:
-            for a in self.agents.values():
-                self.env[a.name] = a(self.env)
-        else:
-            self.env = dict(((a.name), (a(self.env))) for a in self.agents.values())
+        updating_env = self.env if self.immediate_update else {}
+        for a in self.agents.values():
+            action = a(self.env)
+            if a.name is not None:
+                updating_env[a.name] = action
+        if not self.immediate_update:
+            self.env.update(updating_env)
         self.i += 1
         self.call_handlers()
         return self.env

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb8efd3b0
+# __coconut_hash__ = 0x288a7c87
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -20,12 +20,10 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
-import random
-from math import log
-
+from iternash import Game
 from iternash import expr_agent
 from iternash import bbopt_agent
-from iternash import Game
+from iternash import debug_agent
 
 
 common_params = dict(m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0, min_n_m=0.1, max_n_m=10000)
@@ -60,25 +58,25 @@ nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - (m-1)*(1-p)*p^(m-1) - p**m"
 
 
 # black-box-optimized n agent that attempts to set PC to eps
-bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__, default=common_params["m"])
+bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=expr_agent(None, "-abs(log(PC) - log(eps))"), file=__file__, default=common_params["m"])
 
 
 # absent-minded driver game where catastrophe occurs if there are
 #  ever d sequential defections during deployment
-seq_d_game = Game(d=2, n=conservative_n_agent, p=seq_d_p_agent, PC=seq_d_PC_agent, **common_params)
+seq_d_game = Game(conservative_n_agent, seq_d_p_agent, seq_d_PC_agent, d=2, **common_params)
 
 
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment
-nonseq_2d_game = Game(n=bbopt_n_agent, p=nonseq_2d_p_agent, PC=nonseq_2d_PC_agent, **common_params)
+nonseq_2d_game = Game(bbopt_n_agent, nonseq_2d_p_agent, nonseq_2d_PC_agent, **common_params)
 
 
 
 if __name__ == "__main__":
     print("Running sequential defection game...")
-    seq_d_game.attach(lambda env: print("p = {p}; PC = {PC}".format(**env)))
+    seq_d_game.attach(debug_agent("p = {p}; PC = {PC}"))
     (print)(seq_d_game.run())
 
     print("Running non-sequential two defection game...")
-    nonseq_2d_game.attach(lambda env: print("n = {n}; p = {p}; PC = {PC}".format(**env)))
+    nonseq_2d_game.attach(debug_agent("n = {n}; p = {p}; PC = {PC}"))
     (print)(nonseq_2d_game.run())

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3b429e6f
+# __coconut_hash__ = 0x87533309
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -21,3 +21,9 @@ if _coconut_sys.version_info >= (3,):
 # Compiled Coconut: -----------------------------------------------------------
 
 Str = (str, bytes)
+
+
+def printret(obj):
+    """Print then return _obj_."""
+    print(obj)
+    return obj
