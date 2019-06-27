@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xdd92190
+# __coconut_hash__ = 0xb8efd3b0
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -32,7 +32,7 @@ common_params = dict(m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0, min_n_m=0.
 
 
 # conservative estimate of required training episodes
-conservative_n_agent = expr_agent(name="n", expr="m/p_mod * (1-eps)/eps")
+conservative_n_agent = expr_agent(name="n", expr="m/p_mod * (1-eps)/eps", default=common_params["m"])
 
 
 # optimal defection probability in the sequential defection game
@@ -60,7 +60,7 @@ nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - (m-1)*(1-p)*p^(m-1) - p**m"
 
 
 # black-box-optimized n agent that attempts to set PC to eps
-bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__)
+bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__, default=common_params["m"])
 
 
 # absent-minded driver game where catastrophe occurs if there are

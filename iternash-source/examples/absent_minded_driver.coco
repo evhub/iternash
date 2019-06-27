@@ -32,6 +32,7 @@ common_params = dict(
 conservative_n_agent = expr_agent(
     name="n",
     expr="m/p_mod * (1-eps)/eps",
+    default=common_params["m"],
 )
 
 
@@ -85,6 +86,7 @@ bbopt_n_agent = bbopt_agent(
         int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
     util_func=env -> -abs(log(env["PC"]) - log(env["eps"])),
     file=__file__,
+    default=common_params["m"],
 )
 
 
