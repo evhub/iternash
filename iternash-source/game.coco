@@ -55,7 +55,7 @@ class Game:
         finally:
             self.env["final_step"] = False
 
-    def run(self, max_steps=1000, sequential_update=True):
+    def run(self, max_steps=500, sequential_update=True):
         """Iterate until equilibrium or max_steps is reached."""
         for _ in tqdm(range(max_steps)):
             prev_env = deepcopy(self.env)

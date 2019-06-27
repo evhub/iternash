@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x68646fd
+# __coconut_hash__ = 0x574ca505
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -21,21 +21,21 @@ if _coconut_sys.version_info >= (3,):
 # Compiled Coconut: -----------------------------------------------------------
 
 import random
-import math
+from math import log
 
 from iternash import expr_agent
 from iternash import bbopt_agent
 from iternash import Game
 
 
-common_params = dict(p_mod=0.9, m=100, eps=0.01, r_n=0, r_m=1, r_f=0)
+common_params = dict(m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0, min_n_m=0.1, max_n_m=10000)
 
 
 # conservative estimate of required training episodes
 conservative_n_agent = expr_agent(name="n", expr="m/p_mod * (1-eps)/eps")
 
 
-# probability of defection in the sequential defection game
+# optimal defection probability in the sequential defection game
 seq_d_p_agent = expr_agent(name="p", expr="""(
     (n * p_mod - (d-1)/(1-p))
     / (n * p_mod + m - (d-1)/(1-p))
@@ -44,10 +44,10 @@ seq_d_p_agent = expr_agent(name="p", expr="""(
 
 
 # probability of catastrophe in the sequential defection game
-seq_d_PC_agent = expr_agent(name="PC", expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))")
+seq_d_PC_agent = expr_agent(name="PC", expr="(1-p)^(d-1) * (1 - p^(m-d+1))", default=0.1)
 
 
-# probability of defection in the non-sequential two defection game
+# optimal defection probability in the non-sequential two defection game
 nonseq_2d_p_agent = expr_agent(name="p", expr="""(
     (n * p_mod)
     / (n * p_mod + m^2 - m)
@@ -56,11 +56,11 @@ nonseq_2d_p_agent = expr_agent(name="p", expr="""(
 
 
 # probability of catastrophe in the non-sequential two defection game
-nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - (m-1)*(1-p)*p^(m-1)")
+nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - (m-1)*(1-p)*p^(m-1) - p**m", default=0.1)
 
 
-# black box n agent that attempts to minimize PC
-bbopt_n_agent = bbopt_agent(name="n", rand_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", 0.1, 10000)), util_func=lambda env: -math.log(env["PC"]), file=__file__)
+# BBopt n agent that attempts to set PC to eps
+bbopt_n_agent = bbopt_agent(name="n", rand_actor=lambda bb, env: int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])), util_func=lambda env: -abs(log(env["PC"]) - log(env["eps"])), file=__file__)
 
 
 seq_d_game = Game(d=2, n=conservative_n_agent, p=seq_d_p_agent, PC=seq_d_PC_agent, **common_params)
@@ -76,5 +76,5 @@ if __name__ == "__main__":
     (print)(seq_d_game.run())
 
     print("Running non-sequential two defection game...")
-    seq_d_game.attach(lambda env: print("n = {n}; p = {p}; PC = {PC}".format(**env)))
+    nonseq_2d_game.attach(lambda env: print("n = {n}; p = {p}; PC = {PC}".format(**env)))
     (print)(nonseq_2d_game.run())

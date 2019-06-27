@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x701cdb2b
+# __coconut_hash__ = 0xd155bf2d
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -100,7 +100,7 @@ class Game(_coconut.object):
         finally:
             self.env["final_step"] = False
 
-    def run(self, max_steps=1000, sequential_update=True):
+    def run(self, max_steps=500, sequential_update=True):
         """Iterate until equilibrium or max_steps is reached."""
         for _ in tqdm(range(max_steps)):
             prev_env = deepcopy(self.env)

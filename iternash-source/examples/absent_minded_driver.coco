@@ -1,5 +1,5 @@
 import random
-import math
+from math import log
 
 from iternash import (
     expr_agent,
@@ -9,18 +9,22 @@ from iternash import (
 
 
 common_params = dict(
-    # probability of training defection leading to no reward for that agent
-    p_mod=0.9,
     # number of testing/deployment episodes
     m=100,
-    # desired PC for the n agent to ensure if conservatively assuming d = 1
+    # desired PC for the n agent to attempt to achieve
     eps=0.01,
+    # probability of training defection leading to no reward for that agent
+    p_mod=0.9,
     # utility for defecting during training
     r_n=0,
     # utility for defecting during testing/deployment
     r_m=1,
     # utility for never defecting
     r_f=0,
+    # minimum n/m for the BBopt n agent to check
+    min_n_m=0.1,
+    # maximum n/m for the BBopt n agent to check
+    max_n_m=10000,
 )
 
 
@@ -31,9 +35,10 @@ conservative_n_agent = expr_agent(
 )
 
 
-# probability of defection in the sequential defection game
+# optimal defection probability in the sequential defection game
 seq_d_p_agent = expr_agent(
     name="p",
+    # TODO: Verify this formula holds.
     expr="""(
     (n * p_mod - (d-1)/(1-p))
     / (n * p_mod + m - (d-1)/(1-p))
@@ -46,13 +51,16 @@ seq_d_p_agent = expr_agent(
 # probability of catastrophe in the sequential defection game
 seq_d_PC_agent = expr_agent(
     name="PC",
-    expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))",
+    # TODO: Verify this formula in light of the new nonseq_2d_PC.
+    expr="(1-p)^(d-1) * (1 - p^(m-d+1))",
+    default=0.1,
 )
 
 
-# probability of defection in the non-sequential two defection game
+# optimal defection probability in the non-sequential two defection game
 nonseq_2d_p_agent = expr_agent(
     name="p",
+    # TODO: Needs to be recalculated for the new nonseq_2d_PC.
     expr="""(
     (n * p_mod)
     / (n * p_mod + m^2 - m)
@@ -65,15 +73,16 @@ nonseq_2d_p_agent = expr_agent(
 # probability of catastrophe in the non-sequential two defection game
 nonseq_2d_PC_agent = expr_agent(
     name="PC",
-    expr="1 - (m-1)*(1-p)*p^(m-1)",
+    expr="1 - (m-1)*(1-p)*p^(m-1) - p**m",
+    default=0.1,
 )
 
 
-# black box n agent that attempts to minimize PC
+# BBopt n agent that attempts to set PC to eps
 bbopt_n_agent = bbopt_agent(
     name="n",
-    rand_actor=(bb, env) -> int(env["m"] * bb.loguniform("n/m", 0.1, 10000)),
-    util_func=env -> -math.log(env["PC"]),
+    rand_actor=(bb, env) -> int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
+    util_func=env -> -abs(log(env["PC"]) - log(env["eps"])),
     file=__file__,
 )
 
@@ -103,5 +112,5 @@ if __name__ == "__main__":
     seq_d_game.run() |> print
 
     print("Running non-sequential two defection game...")
-    seq_d_game.attach(env -> print("n = {n}; p = {p}; PC = {PC}".format(**env)))
+    nonseq_2d_game.attach(env -> print("n = {n}; p = {p}; PC = {PC}".format(**env)))
     nonseq_2d_game.run() |> print
