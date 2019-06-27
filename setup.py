@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x94ed43b1
+# __coconut_hash__ = 0xe9b26402
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -734,4 +734,4 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_makedata, _coc
 import setuptools
 
 
-setuptools.setup(name="iternash", version="0.0.1", url="https://github.com/evhub/iternash", author="Evan Hubinger", packages=setuptools.find_packages(), requirements=["tqdm", "bbopt",])
+setuptools.setup(name="iternash", version="0.1.0", url="https://github.com/evhub/iternash", author="Evan Hubinger", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",])

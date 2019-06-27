@@ -3,11 +3,11 @@ import setuptools
 
 setuptools.setup(
     name="iternash",
-    version="0.0.1",
+    version="0.1.0",
     url="https://github.com/evhub/iternash",
     author="Evan Hubinger",
     packages=setuptools.find_packages(),
-    requirements=[
+    install_requires=[
         "tqdm",
         "bbopt",
     ],
