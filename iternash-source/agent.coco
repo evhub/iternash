@@ -38,7 +38,7 @@ class Agent:
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _no_default_passed:
             default = self.default
-        return Agent(name ?? new_name, actor ?? self.actor, default, period ?? self.period)
+        return Agent(name ?? self.name, actor ?? self.actor, default, period ?? self.period)
 
 
 def agent(name_or_agent_func=None, **kwargs):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6744c975
+# __coconut_hash__ = 0x453fe120
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -34,10 +34,10 @@ class Game(_coconut.object):
     - _agents_ are agents to include in the environment.
     - _named_agents_ are names mapped to agents to give those names to
         in the environment.
-    - _immediate_update_ controls whether new actions are added to the env
-        immediately or only at the end of each step (defaults to True). When
-        this is on the order of agents passed to Game should be the order in
-        which they should be evaluated at each step.
+    - _independent_update_ controls whether agents are evaluated independently
+        or sequentially (defaults to False). When the updates are sequential
+        the order of agents passed to Game will be the order in which they
+        are evaluated at each step.
     """
     final_step = False
 
@@ -48,24 +48,24 @@ class Game(_coconut.object):
             _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("self")
             _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("name")
             agents = _coconut_match_to_args[2:]
-            _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("immediate_update") if "immediate_update" in _coconut_match_to_kwargs else True
+            _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("independent_update") if "independent_update" in _coconut_match_to_kwargs else False
             if _coconut.isinstance(_coconut_match_temp_1, Str):
                 self = _coconut_match_temp_0
                 name = _coconut_match_temp_1
-                immediate_update = _coconut_match_temp_2
+                independent_update = _coconut_match_temp_2
                 named_agents = _coconut_match_to_kwargs
                 _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, immediate_update=True, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, immediate_update=True, **named_agents):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, independent_update=False, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, independent_update=False, **named_agents):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
         self.name = name
         self.env = {"game": self}
         self.agents = []
-        self.immediate_update = immediate_update
+        self.independent_update = independent_update
         self.i = 0
         self.add_agents(*agents, **named_agents)
 
@@ -100,31 +100,35 @@ class Game(_coconut.object):
             agent = Agent(name, agent, period=period)
         self.agents.append(agent)
 
-    def step(self, final=False):
+    def step(self):
         """Perform one full step of action selection."""
-        if final:
-            self.final_step = True
-            try:
-                return self.step()
-            finally:
-                self.final_step = False
-        else:
-            updating_env = self.env if self.immediate_update else {}
-            for a in self.agents:
-                if self.i % a.period == 0:
-                    action = a(self.env)
-                    if a.name is not None:
-                        updating_env[a.name] = action
-            if not self.immediate_update:
-                self.env.update(updating_env)
-            self.i += 1
-            return self.env
+        updating_env = {} if self.independent_update else self.env
+        for a in self.agents:
+            if self.i % a.period == 0:
+                action = a(self.env)
+                if a.name is not None:
+                    updating_env[a.name] = action
+        if self.independent_update:
+            self.env.update(updating_env)
+        self.i += 1
+        return self.env
 
-    def run(self, max_steps):
-        """Iterate until equilibrium or _max_steps_ is reached."""
-        for _ in tqdm(range(max_steps)):
-            prev_env = self.env.copy()
+    def run(self, n):
+        """Run _n_ steps of iterative action selection."""
+        for _ in tqdm(range(n)):
             self.step()
-            if self.env == prev_env:
-                break
-        return self.step(final=True)
+        return self.finalize()
+
+    @property
+    def max_period(self):
+        return max((a.period for a in self.agents))
+
+    def finalize(self):
+        """Gather final parameters."""
+        self.final_step = True
+        try:
+            for _ in range(self.max_period):
+                self.step()
+            return self.env
+        finally:
+            self.final_step = False

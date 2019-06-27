@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x88702e77
+# __coconut_hash__ = 0x3ad27afb
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -61,7 +61,7 @@ class Agent(_coconut.object):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _no_default_passed:
             default = self.default
-        return Agent((new_name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period))
+        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period))
 
 
 def agent(name_or_agent_func=None, **kwargs):

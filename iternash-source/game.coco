@@ -12,18 +12,18 @@ class Game:
     - _agents_ are agents to include in the environment.
     - _named_agents_ are names mapped to agents to give those names to
         in the environment.
-    - _immediate_update_ controls whether new actions are added to the env
-        immediately or only at the end of each step (defaults to True). When
-        this is on the order of agents passed to Game should be the order in
-        which they should be evaluated at each step.
+    - _independent_update_ controls whether agents are evaluated independently
+        or sequentially (defaults to False). When the updates are sequential
+        the order of agents passed to Game will be the order in which they
+        are evaluated at each step.
     """
     final_step = False
 
-    match def __init__(self, name is Str, *agents, immediate_update=True, **named_agents):
+    match def __init__(self, name is Str, *agents, independent_update=False, **named_agents):
         self.name = name
         self.env = {"game": self}
         self.agents = []
-        self.immediate_update = immediate_update
+        self.independent_update = independent_update
         self.i = 0
         self.add_agents(*agents, **named_agents)
 
@@ -52,31 +52,35 @@ class Game:
             agent = Agent(name, agent, period=period)
         self.agents.append(agent)
 
-    def step(self, final=False):
+    def step(self):
         """Perform one full step of action selection."""
-        if final:
-            self.final_step = True
-            try:
-                return self.step()
-            finally:
-                self.final_step = False
-        else:
-            updating_env = self.env if self.immediate_update else {}
-            for a in self.agents:
-                if self.i % a.period == 0:
-                    action = a(self.env)
-                    if a.name is not None:
-                        updating_env[a.name] = action
-            if not self.immediate_update:
-                self.env.update(updating_env)
-            self.i += 1
-            return self.env
+        updating_env = {} if self.independent_update else self.env
+        for a in self.agents:
+            if self.i % a.period == 0:
+                action = a(self.env)
+                if a.name is not None:
+                    updating_env[a.name] = action
+        if self.independent_update:
+            self.env.update(updating_env)
+        self.i += 1
+        return self.env
 
-    def run(self, max_steps):
-        """Iterate until equilibrium or _max_steps_ is reached."""
-        for _ in tqdm(range(max_steps)):
-            prev_env = self.env.copy()
+    def run(self, n):
+        """Run _n_ steps of iterative action selection."""
+        for _ in tqdm(range(n)):
             self.step()
-            if self.env == prev_env:
-                break
-        return self.step(final=True)
+        return self.finalize()
+
+    @property
+    def max_period(self) =
+        max(a.period for a in self.agents)
+
+    def finalize(self):
+        """Gather final parameters."""
+        self.final_step = True
+        try:
+            for _ in range(self.max_period):
+                self.step()
+            return self.env
+        finally:
+            self.final_step = False
