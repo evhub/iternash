@@ -1,48 +1,107 @@
 import random
+import math
 
 from iternash import (
     expr_agent,
+    bbopt_agent,
     Game,
 )
 
 
-p_agent = expr_agent(
+common_params = dict(
+    # probability of training defection leading to no reward for that agent
+    p_mod=0.9,
+    # number of testing/deployment episodes
+    m=100,
+    # desired PC for the n agent to ensure if conservatively assuming d = 1
+    eps=0.01,
+    # utility for defecting during training
+    r_n=0,
+    # utility for defecting during testing/deployment
+    r_m=1,
+    # utility for never defecting
+    r_f=0,
+)
+
+
+# conservative estimate of required training episodes
+conservative_n_agent = expr_agent(
+    name="n",
+    expr="m/p_mod * (1-eps)/eps",
+)
+
+
+# probability of defection in the sequential defection game
+seq_d_p_agent = expr_agent(
     name="p",
     expr="""(
-    (n * p_m - (d-1)/(1-p))
-    / (n * p_m + m - (d-1)/(1-p))
-    * (r_y - r_x)/(r_y - r_f)
+    (n * p_mod - (d-1)/(1-p))
+    / (n * p_mod + m - (d-1)/(1-p))
+    * (r_m - r_n)/(r_m - r_f)
 )^(1/(m-d))""",
     default=0.9,
 )
 
 
-n_agent = expr_agent(
-    name="n",
-    expr="m/p_m * (1-eps)/eps",
-)
-
-
-PC_agent = expr_agent(
+# probability of catastrophe in the sequential defection game
+seq_d_PC_agent = expr_agent(
     name="PC",
     expr="p^(-d) * (1-p)^(d-1) * (p^d - p^(m+1))",
 )
 
 
-game = Game(
-    d=2,
-    p_m=0.5,
-    m=100,
-    eps=0.01,
-    n=n_agent,
-    r_y=1,
-    r_x=0,
-    r_f=0,
-    p=p_agent,
-    PC=PC_agent,
+# probability of defection in the non-sequential two defection game
+nonseq_2d_p_agent = expr_agent(
+    name="p",
+    expr="""(
+    (n * p_mod)
+    / (n * p_mod + m^2 - m)
+    * (r_m - r_n)/(r_m - r_f)
+)^(1/(m-1))""",
+    default=0.9,
 )
 
 
+# probability of catastrophe in the non-sequential two defection game
+nonseq_2d_PC_agent = expr_agent(
+    name="PC",
+    expr="1 - (m-1)*(1-p)*p^(m-1)",
+)
+
+
+# black box n agent that attempts to minimize PC
+bbopt_n_agent = bbopt_agent(
+    name="n",
+    rand_actor=(bb, env) -> int(env["m"] * bb.loguniform("n/m", 0.1, 10000)),
+    util_func=env -> -math.log(env["PC"]),
+    file=__file__,
+)
+
+
+seq_d_game = Game(
+    # necessary number of sequential defections
+    d=2,
+    n=conservative_n_agent,
+    p=seq_d_p_agent,
+    PC=seq_d_PC_agent,
+    **common_params,
+)
+
+
+nonseq_2d_game = Game(
+    n=bbopt_n_agent,
+    p=nonseq_2d_p_agent,
+    PC=nonseq_2d_PC_agent,
+    **common_params,
+)
+
+
+
 if __name__ == "__main__":
-    game.attach(env -> print("p = {p}; PC = {PC}".format(**env)))
-    game.run() |> print
+    print("Running sequential defection game...")
+    seq_d_game.attach(env -> print("p = {p}; PC = {PC}".format(**env)))
+    seq_d_game.run() |> print
+
+    print("Running non-sequential two defection game...")
+    seq_d_game.attach(env -> print("n = {n}; p = {p}; PC = {PC}".format(**env)))
+    nonseq_2d_game.run() |> print

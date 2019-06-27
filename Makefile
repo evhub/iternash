@@ -1,5 +1,6 @@
 .PHONY: test
 test: install
+	-rm ./iternash/examples/absent_minded_driver_n.bbopt.pickle
 	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: install

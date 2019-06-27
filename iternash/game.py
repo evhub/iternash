@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x1c53b406
+# __coconut_hash__ = 0x701cdb2b
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -28,7 +28,14 @@ from iternash.agent import Agent
 
 
 class Game(_coconut.object):
-    def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+    def __init__(self, *args, **kwargs):
+        self.env = {"final_step": False}
+        self.agents = {}
+        self.handlers = []
+        self.setup(*args, **kwargs)
+
+    def setup(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+        """Add new agents/variables."""
         _coconut_match_check = False
         _coconut_FunctionMatchError = _coconut_get_function_match_error()
         if _coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "self" in _coconut_match_to_kwargs)) == 1:
@@ -41,14 +48,11 @@ class Game(_coconut.object):
             _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, *agents, sequential_init=True, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'match def __init__(self, *agents, sequential_init=True, **named_agents):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def setup(self, *agents, sequential_init=True, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'match def setup(self, *agents, sequential_init=True, **named_agents):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
-        self.env = {}
-        self.agents = []
-        self.handlers = []
         self.i = 0
         for a in _coconut.itertools.chain.from_iterable((_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to = a
@@ -63,8 +67,8 @@ class Game(_coconut.object):
                     continue
                 a = Agent(name, actor)
             if a.has_default():
-                self.env[name] = a.default
-            self.agents.append(a)
+                self.env[a.name] = a.default
+            self.agents[a.name] = a
         self.step(sequential_update=sequential_init)
 
     def attach(self, handler, period=100):
@@ -80,13 +84,21 @@ class Game(_coconut.object):
     def step(self, sequential_update=True):
         """Iterate one step."""
         if sequential_update:
-            for a in self.agents:
+            for a in self.agents.values():
                 self.env[a.name] = a(self.env)
         else:
-            self.env = dict(((a.name), (a(self.env))) for a in self.agents)
+            self.env = dict(((a.name), (a(self.env))) for a in self.agents.values())
         self.i += 1
         self.call_handlers()
         return self.env
+
+    def final_step(self, sequential_update=True):
+        """Perform a final step with BBopt parameters set to serving."""
+        self.env["final_step"] = True
+        try:
+            return self.step(sequential_update=sequential_update).copy()
+        finally:
+            self.env["final_step"] = False
 
     def run(self, max_steps=1000, sequential_update=True):
         """Iterate until equilibrium or max_steps is reached."""
@@ -95,4 +107,10 @@ class Game(_coconut.object):
             self.step(sequential_update=sequential_update)
             if self.env == prev_env:
                 break
-        return self.env
+        return self.final_step()
+
+    def clone(self, *args, **kwargs):
+        """Create a new copy of the environment with new agents."""
+        new_game = deepcopy(self)
+        new_game.setup(*args, **kwargs)
+        return new_game

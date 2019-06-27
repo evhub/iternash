@@ -1,3 +1,9 @@
+import math
+
+from bbopt import BlackBoxOptimizer
+from bbopt.constants import default_alg
+
+
 no_default = object()
 
 class Agent:
@@ -28,12 +34,12 @@ class Agent:
         self.default is not no_default
 
 
-def agent(name is str) =
-    Agent$(name)
-
-addpattern def agent(agent_func) =
+def agent(name_or_agent_func, **kwargs):
     """Decorator for easily constructing Agents."""
-    Agent(agent_func_or_name.__name__, agent_func_or_name)
+    if isinstance(name_or_agent_func, str):
+        return Agent$(name, **kwargs)
+    else:
+        return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
 default_expr_aliases = {
@@ -41,8 +47,22 @@ default_expr_aliases = {
     "^": "**",
 }
 
-def expr_agent(name, expr, default=no_default, globs=None, aliases=default_expr_aliases, debug=False):
+def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwargs):
     """Construct an agent that evaluates the given expression."""
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    return Agent(name, eval$(expr, globs), default=default, debug=debug)
+    return Agent(name, eval$(expr, globs), **kwargs)
+
+
+def bbopt_agent(name, rand_actor, util_func, file, alg=default_alg, **kwargs):
+    """Construct an agent that uses BBopt to maximize some utility."""
+    bb = BlackBoxOptimizer(file=file, tag=name)
+    first_action = [True]
+    def bbopt_actor(env):
+        if first_action[0]:
+            first_action[0] = False
+        else:
+            bb.maximize(util_func(env))
+        bb.run(alg=alg if not env["final_step"] else None)
+        return rand_actor(bb, env)
+    return Agent(name, bbopt_actor, **kwargs)

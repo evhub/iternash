@@ -6,10 +6,14 @@ from iternash.agent import Agent
 
 
 class Game:
-    match def __init__(self, *agents, sequential_init=True, **named_agents):
-        self.env = {}
-        self.agents = []
+    def __init__(self, *args, **kwargs):
+        self.env = {"final_step": False}
+        self.agents = {}
         self.handlers = []
+        self.setup(*args, **kwargs)
+
+    match def setup(self, *agents, sequential_init=True, **named_agents):
+        """Add new agents/variables."""
         self.i = 0
         for a in agents :: named_agents.items():
             match (name is str, actor) in a:
@@ -18,8 +22,8 @@ class Game:
                     continue
                 a = Agent(name, actor)
             if a.has_default():
-                self.env[name] = a.default
-            self.agents.append(a)
+                self.env[a.name] = a.default
+            self.agents[a.name] = a
         self.step(sequential_update=sequential_init)
 
     def attach(self, handler, period=100):
@@ -35,13 +39,21 @@ class Game:
     def step(self, sequential_update=True):
         """Iterate one step."""
         if sequential_update:
-            for a in self.agents:
+            for a in self.agents.values():
                 self.env[a.name] = a(self.env)
         else:
-            self.env = {a.name: a(self.env) for a in self.agents}
+            self.env = {a.name: a(self.env) for a in self.agents.values()}
         self.i += 1
         self.call_handlers()
         return self.env
+
+    def final_step(self, sequential_update=True):
+        """Perform a final step with BBopt parameters set to serving."""
+        self.env["final_step"] = True
+        try:
+            return self.step(sequential_update=sequential_update).copy()
+        finally:
+            self.env["final_step"] = False
 
     def run(self, max_steps=1000, sequential_update=True):
         """Iterate until equilibrium or max_steps is reached."""
@@ -50,4 +62,10 @@ class Game:
             self.step(sequential_update=sequential_update)
             if self.env == prev_env:
                 break
-        return self.env
+        return self.final_step()
+
+    def clone(self, *args, **kwargs):
+        """Create a new copy of the environment with new agents."""
+        new_game = deepcopy(self)
+        new_game.setup(*args, **kwargs)
+        return new_game

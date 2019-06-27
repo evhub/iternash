@@ -109,3 +109,7 @@ ENV/
 
 # Pytest
 .pytest_cache/
+
+# BBopt
+*.bbopt.pickle
+*.bbopt.json

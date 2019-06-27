@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x21be756d
+# __coconut_hash__ = 0x205bbf4c
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -19,6 +19,12 @@ if _coconut_sys.version_info >= (3,):
     _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
+
+import math
+
+from bbopt import BlackBoxOptimizer
+from bbopt.constants import default_alg
+
 
 no_default = object()
 
@@ -72,47 +78,32 @@ class Agent(_coconut.object):
         return self.default is not no_default
 
 
-def agent(*_coconut_match_to_args, **_coconut_match_to_kwargs):
-    _coconut_match_check = False
-    _coconut_FunctionMatchError = _coconut_get_function_match_error()
-    if (_coconut.len(_coconut_match_to_args) <= 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "name" in _coconut_match_to_kwargs)) == 1):
-        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("name")
-        if (_coconut.isinstance(_coconut_match_temp_0, str)) and (not _coconut_match_to_kwargs):
-            name = _coconut_match_temp_0
-            _coconut_match_check = True
-    if not _coconut_match_check:
-        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'def agent(name is str) ='" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-        _coconut_match_err.pattern = 'def agent(name is str) ='
-        _coconut_match_err.value = _coconut_match_to_args
-        raise _coconut_match_err
-
-    return _coconut.functools.partial(Agent, name)
-
-@_coconut_addpattern(agent)
-def agent(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+def agent(name_or_agent_func, **kwargs):
     """Decorator for easily constructing Agents."""
-    _coconut_match_check = False
-    _coconut_FunctionMatchError = _coconut_get_function_match_error()
-    if (_coconut.len(_coconut_match_to_args) <= 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "agent_func" in _coconut_match_to_kwargs)) == 1):
-        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("agent_func")
-        if not _coconut_match_to_kwargs:
-            agent_func = _coconut_match_temp_0
-            _coconut_match_check = True
-    if not _coconut_match_check:
-        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'addpattern def agent(agent_func) ='" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-        _coconut_match_err.pattern = 'addpattern def agent(agent_func) ='
-        _coconut_match_err.value = _coconut_match_to_args
-        raise _coconut_match_err
-
-    return Agent(agent_func_or_name.__name__, agent_func_or_name)
+    if isinstance(name_or_agent_func, str):
+        return _coconut.functools.partial(Agent, name, **kwargs)
+    else:
+        return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
 default_expr_aliases = {"\n": "", "^": "**"}
 
-def expr_agent(name, expr, default=no_default, globs=None, aliases=default_expr_aliases, debug=False):
+def expr_agent(name, expr, globs=vars(math), aliases=default_expr_aliases, **kwargs):
     """Construct an agent that evaluates the given expression."""
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    return Agent(name, _coconut.functools.partial(eval, expr, globs), default=default, debug=debug)
+    return Agent(name, _coconut.functools.partial(eval, expr, globs), **kwargs)
+
+
+def bbopt_agent(name, rand_actor, util_func, file, alg=default_alg, **kwargs):
+    """Construct an agent that uses BBopt to maximize some utility."""
+    bb = BlackBoxOptimizer(file=file, tag=name)
+    first_action = [True]
+    def bbopt_actor(env):
+        if first_action[0]:
+            first_action[0] = False
+        else:
+            bb.maximize(util_func(env))
+        bb.run(alg=alg if not env["final_step"] else None)
+        return rand_actor(bb, env)
+    return Agent(name, bbopt_actor, **kwargs)
