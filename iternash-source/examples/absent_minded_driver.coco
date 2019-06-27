@@ -1,5 +1,9 @@
+from scipy.special import comb
+from mpmath import hyp2f1
+
 from iternash import (
     Game,
+    agent,
     expr_agent,
     bbopt_agent,
     debug_agent,
@@ -19,10 +23,6 @@ common_params = dict(
     r_m=1,
     # utility for never defecting
     r_f=0,
-    # minimum n/m for the black-box-optimized n agent to check
-    min_n_m=0.1,
-    # maximum n/m for the black-box-optimized n agent to check
-    max_n_m=10000,
 )
 
 
@@ -35,6 +35,7 @@ conservative_n_agent = expr_agent(
 
 
 # optimal defection probability in the sequential defection game
+#  (note that this formula is recursive and requires iteration to solve)
 seq_d_p_agent = expr_agent(
     name="p",
     # TODO: Verify this formula holds.
@@ -50,7 +51,6 @@ seq_d_p_agent = expr_agent(
 # probability of catastrophe in the sequential defection game
 seq_d_PC_agent = expr_agent(
     name="PC",
-    # TODO: Verify this formula in light of the new nonseq_2d_PC.
     expr="(1-p)^(d-1) * (1 - p^(m-d+1))",
     default=0.1,
 )
@@ -59,10 +59,9 @@ seq_d_PC_agent = expr_agent(
 # optimal defection probability in the non-sequential two defection game
 nonseq_2d_p_agent = expr_agent(
     name="p",
-    # TODO: Needs to be recalculated for the new nonseq_2d_PC.
     expr="""(
     (n * p_mod)
-    / (n * p_mod + m^2 - m)
+    / (n * p_mod + m*(m-1))
     * (r_m - r_n)/(r_m - r_f)
 )^(1/(m-1))""",
     default=0.9,
@@ -72,7 +71,7 @@ nonseq_2d_p_agent = expr_agent(
 # probability of catastrophe in the non-sequential two defection game
 nonseq_2d_PC_agent = expr_agent(
     name="PC",
-    expr="1 - (m-1)*(1-p)*p^(m-1) - p**m",
+    expr="1 - p^m - m*(1-p)*p^(m-1)",
     default=0.1,
 )
 
@@ -81,18 +80,45 @@ nonseq_2d_PC_agent = expr_agent(
 bbopt_n_agent = bbopt_agent(
     name="n",
     tunable_actor=(bb, env) ->
-        int(env["m"] * bb.loguniform("n/m", env["min_n_m"], env["max_n_m"])),
+        int(conservative_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)),
     util_func=expr_agent(None, "-abs(log(PC) - log(eps))"),
     file=__file__,
     default=common_params["m"],
 )
 
 
+# black-box-optimized p agent that attempts to find the optimal p
+#  in the non-sequential defection game
+nonseq_d_bbopt_p_agent = bbopt_agent(
+    name="p",
+    tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.000001, 1),
+    util_func=(def env ->
+        p = env["p"];
+        p_mod = env["p_mod"];
+        n = env["n"];
+        PC = env["PC"];
+        (p + (1-p)*(1-p_mod))**n * PC
+    ),
+    file=__file__,
+    default=0.9,
+)
+
+
+# probability of catastrophe in the non-sequential defection game
+@agent(name="PC", default=0.1)
+def nonseq_d_PC_agent(env) =
+    comb(m, d) * p**(m-d) * (1-p)**d * (float..hyp2f1)(1, d-m, d+1, (p-1)/p) where:
+        m = env["m"]
+        d = env["d"]
+        p = env["p"]
+
+
 # absent-minded driver game where catastrophe occurs if there are
 #  ever d sequential defections during deployment
 seq_d_game = Game(
-    conservative_n_agent,
+    "seq_d_game",
     seq_d_p_agent,
+    conservative_n_agent,
     seq_d_PC_agent,
     # necessary number of sequential defections
     d=2,
@@ -103,12 +129,25 @@ seq_d_game = Game(
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment
 nonseq_2d_game = Game(
+    "nonseq_2d_game",
     bbopt_n_agent,
     nonseq_2d_p_agent,
     nonseq_2d_PC_agent,
     **common_params,
 )
 
+
+# absent-minded driver game where catastrophe occurs upon the
+#  dth defection during deployment
+nonseq_d_game = Game(
+    "nonseq_d_game",
+    nonseq_d_bbopt_p_agent,
+    bbopt_n_agent,
+    nonseq_d_PC_agent,
+    # necessary number of non-sequential defections
+    d=2,
+    **common_params,
+)
 
 
 if __name__ == "__main__":
@@ -119,3 +158,7 @@ if __name__ == "__main__":
     print("Running non-sequential two defection game...")
     nonseq_2d_game.attach(debug_agent("n = {n}; p = {p}; PC = {PC}"))
     nonseq_2d_game.run() |> print
+
+    print("Running non-sequential defection game...")
+    nonseq_d_game.attach(debug_agent("n = {n}; p = {p}; PC = {PC}"))
+    nonseq_d_game.run() |> print

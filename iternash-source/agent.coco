@@ -55,7 +55,7 @@ def agent(name_or_agent_func=None, **kwargs):
         def x_agent(env) =
             ...
 
-        @agent("x", default=...)
+        @agent(name="x", default=...)
         def x_agent(env) =
             ...
     """
@@ -63,6 +63,8 @@ def agent(name_or_agent_func=None, **kwargs):
         return agent$(**kwargs)
     elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
         return Agent$(name, **kwargs)
+    elif "name" in kwargs:
+        return Agent(kwargs.pop("name"), name_or_agent_func, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
@@ -104,14 +106,13 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
         is tree_structured_parzen_estimator).
     - _kwargs_ are passed to `Agent`.
     """
-    bb = BlackBoxOptimizer(file=file, tag=name)
-    first_action = [True]
     def bbopt_actor(env):
-        if first_action[0]:
-            first_action[0] = False
-        else:
+        match {=(name + "_bb"): bb, **_} in env:
             bb.maximize(util_func(env))
-        bb.run(alg=alg if not env["final_step"] else None)
+        else:
+            bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
+            env[name + "_bb"] = bb
+        bb.run(alg=alg if not env["game"].final_step else None)
         return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, **kwargs)
 

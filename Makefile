@@ -1,6 +1,5 @@
 .PHONY: test
-test: install
-	-rm ./iternash/examples/absent_minded_driver_n.bbopt.pickle
+test: clean install
 	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: install
@@ -27,6 +26,8 @@ clean:
 	rm -rf ./dist ./build
 	-find . -name '*.pyc' -delete
 	-find . -name '__pycache__' -delete
+	-find . -name '*.bbopt.pickle' -delete
+	-find . -name '*.bbopt.json' -delete
 
 .PHONY: wipe
 wipe: clean

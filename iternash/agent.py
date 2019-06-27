@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb6a25f59
+# __coconut_hash__ = 0x25f12a67
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -78,7 +78,7 @@ def agent(name_or_agent_func=None, **kwargs):
         def x_agent(env) =
             ...
 
-        @agent("x", default=...)
+        @agent(name="x", default=...)
         def x_agent(env) =
             ...
     """
@@ -86,6 +86,8 @@ def agent(name_or_agent_func=None, **kwargs):
         return _coconut.functools.partial(agent, **kwargs)
     elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
         return _coconut.functools.partial(Agent, name, **kwargs)
+    elif "name" in kwargs:
+        return Agent(kwargs.pop("name"), name_or_agent_func, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
@@ -124,14 +126,20 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
         is tree_structured_parzen_estimator).
     - _kwargs_ are passed to `Agent`.
     """
-    bb = BlackBoxOptimizer(file=file, tag=name)
-    first_action = [True]
     def bbopt_actor(env):
-        if first_action[0]:
-            first_action[0] = False
-        else:
+        _coconut_match_to = env
+        _coconut_match_check = False
+        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
+            _coconut_match_temp_0 = _coconut_match_to.get((name + "_bb"), _coconut_sentinel)
+            if _coconut_match_temp_0 is not _coconut_sentinel:
+                bb = _coconut_match_temp_0
+                _coconut_match_check = True
+        if _coconut_match_check:
             bb.maximize(util_func(env))
-        bb.run(alg=alg if not env["final_step"] else None)
+        else:
+            bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
+            env[name + "_bb"] = bb
+        bb.run(alg=alg if not env["game"].final_step else None)
         return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, **kwargs)
 

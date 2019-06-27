@@ -8,24 +8,29 @@ from iternash.agent import Agent
 
 class Game:
     """Game class. See Game.setup for information on __init__ parameters."""
+    final_step = False
 
     def __init__(self, *args, **kwargs):
-        self.env = {"final_step": False}
+        self.env = {"game": self}
         self.agents = {}
         self.handlers = []
         self.immediate_update = True
         self.setup(*args, **kwargs)
 
-    match def setup(self, *agents, immediate_update=None, **named_agents):
-        """Add new agents/variables.
+    match def setup(self, name is Str, *agents, immediate_update=None, **named_agents):
+        """Initialize the game with agents/variables.
 
         Parameters:
+        - _name_ is the name of the game.
         - _agents_ are agents to include in the environment.
         - _named_agents_ are names mapped to agents to give those names to
             in the environment.
-        - _immediate_update_ controls whether new actions are added to the environment
-            immediately or only at the end of each step (defaults to True).
+        - _immediate_update_ controls whether new actions are added to the env
+            immediately or only at the end of each step (defaults to True). When
+            this is on the order of agents passed to Game should be the order in
+            which they should be evaluated at each step.
         """
+        self.name = name
         if immediate_update is not None:
             self.immediate_update = immediate_update
         self.i = 0
@@ -57,26 +62,25 @@ class Game:
             if self.i % period == 0:
                 handler(self.env)
 
-    def step(self):
+    def step(self, final=False):
         """Perform one full step of action selection."""
-        updating_env = self.env if self.immediate_update else {}
-        for a in self.agents.values():
-            action = a(self.env)
-            if a.name is not None:
-                updating_env[a.name] = action
-        if not self.immediate_update:
-            self.env.update(updating_env)
-        self.i += 1
-        self.call_handlers()
-        return self.env
-
-    def final_step(self):
-        """Perform a final step with BBopt parameters set to serving."""
-        self.env["final_step"] = True
-        try:
-            return self.step().copy()
-        finally:
-            self.env["final_step"] = False
+        if final:
+            self.final_step = True
+            try:
+                return self.step()
+            finally:
+                self.final_step = False
+        else:
+            updating_env = self.env if self.immediate_update else {}
+            for a in self.agents.values():
+                action = a(self.env)
+                if a.name is not None:
+                    updating_env[a.name] = action
+            if not self.immediate_update:
+                self.env.update(updating_env)
+            self.i += 1
+            self.call_handlers()
+            return self.env
 
     def run(self, max_steps=500):
         """Iterate until equilibrium or _max_steps_ is reached."""
@@ -85,10 +89,10 @@ class Game:
             self.step()
             if self.env == prev_env:
                 break
-        return self.final_step()
+        return self.step(final=True)
 
-    def clone(self, *args, **kwargs):
+    def clone(self, name=None, *args, **kwargs):
         """Create a copy of the environment (optionally) with new parameters."""
         new_game = deepcopy(self)
-        new_game.setup(*args, **kwargs)
+        new_game.setup(name ?? self.name, *args, **kwargs)
         return new_game
