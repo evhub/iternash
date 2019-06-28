@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x65001135
+# __coconut_hash__ = 0x612fd18a
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -20,6 +20,8 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
+from math import log
+
 from scipy.special import comb
 from mpmath import hyp2f1
 
@@ -28,9 +30,11 @@ from iternash import agent
 from iternash import expr_agent
 from iternash import bbopt_agent
 from iternash import debug_agent
+from iternash import human_agent
+from iternash.util import clip
 
 
-common_params = dict(m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0)
+common_params = dict(d=2, m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0)
 
 
 # optimal training episodes in the one defection game
@@ -45,109 +49,101 @@ baseline_p_agent = expr_agent(name="p", expr="""(
     )**(1/(m-1))""", default=0.9)
 
 
-# probability of catastrophe in the sequential defection game
-seq_d_PC_agent = expr_agent(name="PC", expr="(1-p)**(d-1) * (1 - p**(m-d+1))", default=0.1)
+# probability of catastrophe in the one defection game
+baseline_PC_agent = expr_agent(name="PC", expr="1 - p**m", default=0.1)
 
 
 # generic expected reward calculator
-ER_agent = expr_agent(name="ER", expr="r_n * (1 - (p + (1-p)*(1-p_mod))**n) + (p + (1-p)*(1-p_mod))**n * (r_m * PC + r_f * (1 - PC))")
-
-
-# optimal defection probability in the sequential defection game
-#  (note that this formula is recursive and requires iteration to solve)
-@agent(name="p", default=0.9)
-def seq_d_p_agent(env):
-    inner_p = (expr_agent(name="inner_p", expr="""
-        (n * p_mod - (d-1)/(1-p))
-        / (n * p_mod + m - (d-1)/(1-p))
-        * (r_m - r_n)/(r_m - r_f)
-        """))(env)
-    if 0 < inner_p < 1:
-        m = env["m"]
-        d = env["d"]
-        return inner_p**(1 / (m - d))
-    else:
-        return 0.1
-
-
-# black-box-optimized n agent that attempts to set PC to eps
-bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)), util_func=expr_agent(None, "-abs(math.log(PC) - math.log(eps))"), file=__file__, default=common_params["m"])
+ER_agent = expr_agent(name="ER", expr="""
+    (1 - (p + (1-p)*(1-p_mod))**n) * r_n
+    + (p + (1-p)*(1-p_mod))**n * (
+        PC * r_m
+        + (1-PC) * r_f
+    )
+    """)
 
 
 # probability of catastrophe in the non-sequential two defection game
 nonseq_2d_PC_agent = expr_agent(name="PC", expr="1 - p**m - m*(1-p)*p**(m-1)", default=0.1)
 
-
-# optimal defection probability in the non-sequential two defection game
-nonseq_2d_p_agent = expr_agent(name="p", expr="""(
-        (n * p_mod)
-        / (n * p_mod + m*(m-1))
-        * (r_m - r_n)/(r_m - r_f)
-    )**(1/(m-1))""", default=0.9)
-
-
-# probability of catastrophe in the non-sequential defection game
 @agent(name="PC", default=0.1)
 def nonseq_d_PC_agent(env):
-    m = env["m"]
     d = env["d"]
+    if d == 2:
+        return nonseq_2d_PC_agent(env)
+    m = env["m"]
     p = env["p"]
 
 
-# black-box-optimized p agent that attempts to find the optimal p
-#  in the non-sequential defection game
+# probability of catastrophe in the sequential defection game
     return comb(m, d) * p**(m - d) * (1 - p)**d * (_coconut_forward_compose(hyp2f1, float))(1, d - m, d + 1, (p - 1) / p)
-nonseq_d_bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.000001, 1), util_func=_coconut.operator.itemgetter("ER"), file=__file__, default=0.9)
+@agent(name="PC", default=0.1)
+def _exact_seq_d_PC_agent(env):
+    m = env["m"]
+    d = env["d"]
+    PC = 0
+    for i in range(1, int(m / d) + 1):
+        PC += expr_agent(None, """
+        (-1)**(i+1) * (1-p + p*(m-i*d+1)/i) * comb(m-i*d, i-1) * (1-p)**(i*d) * p**(i-1)
+        """, vars={"i": i, "comb": comb})(env)
+    return PC
+
+seq_d_PC_agent = expr_agent(name="PC", expr="(1-p)**(d-1) * (1 - p**(m-d+1))", default=0.1)
+
+
+# black-box-optimized p agent
+bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.000001, 1), util_func=lambda env: log(clip(env["ER"])), file=__file__, default=0.9)
+
+
+# black-box-optimized n agent that attempts to set PC to eps
+bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)), util_func=expr_agent(None, "-abs(log(PC) - log(eps))", vars={"log": log}), file=__file__, default=common_params["m"])
 
 
 # agent that prints n, p, PC every 100 steps
-printing_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}", period=100)
+periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period=100)
 
 
 # absent-minded driver game where catastrophe occurs on the first defection
-baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, seq_d_PC_agent, ER_agent, d=1, **common_params)
-
-
-# absent-minded driver game where catastrophe occurs if there are ever
-#  d sequential defections during deployment with a conservative n
-conservative_seq_d_game = Game("seq_d", baseline_n_agent, seq_d_p_agent, seq_d_PC_agent, ER_agent, printing_debugger.clone(period=200), d=2, **common_params)
-
-
-# absent-minded driver game where catastrophe occurs if there are ever
-#  d sequential defections during deployment approximated by BBopt agents
-approx_seq_d_game = Game("seq_d", bbopt_n_agent.clone(period=10), seq_d_p_agent, seq_d_PC_agent, ER_agent, printing_debugger.clone(period=500), d=2, **common_params)
+baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC_agent, ER_agent, default_run_steps=1, **common_params)
 
 
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment with a conservative n
-conservative_nonseq_2d_game = Game("nonseq_2d", baseline_n_agent, nonseq_2d_p_agent, nonseq_2d_PC_agent, ER_agent, printing_debugger, **common_params)
+conservative_nonseq_d_game = Game("conservative_nonseq_d", baseline_n_agent, bbopt_p_agent, nonseq_d_PC_agent, ER_agent, periodic_debugger, default_run_steps=500, **common_params)
 
 
-# absent-minded driver game where catastrophe occurs upon the
-#  second defection during deployment
-nonseq_2d_game = Game("nonseq_2d", bbopt_n_agent, nonseq_2d_p_agent, nonseq_2d_PC_agent, ER_agent, printing_debugger, **common_params)
+# absent-minded driver game where catastrophe occurs if there are ever
+#  d sequential defections during deployment with a conservative n
+#  and p approximated by BBopt
+conservative_seq_d_game = Game("conservative_seq_d", baseline_n_agent, bbopt_p_agent, seq_d_PC_agent, ER_agent, periodic_debugger, default_run_steps=500, **common_params)
 
 
-# absent-minded driver game where catastrophe occurs upon the
-#  dth defection during deployment approximated by BBopt agents
-approx_nonseq_d_game = Game("nonseq_d", nonseq_d_PC_agent, ER_agent, nonseq_d_bbopt_p_agent, bbopt_n_agent, printing_debugger, independent_update=True, d=2, **common_params)
+# game for testing the impact of different p values in the non-sequential
+#  vs. sequential cases
+def _coconut_lambda_0(env):
+    new_env = env.copy()
+    new_env["PC"] = env["baseline_PC"]
+    return ER_agent(new_env)
+def _coconut_lambda_1(env):
+    new_env = env.copy()
+    new_env["PC"] = env["nonseq_d_PC"]
+    return ER_agent(new_env)
+def _coconut_lambda_2(env):
+    new_env = env.copy()
+    new_env["PC"] = env["seq_d_PC"]
+    return ER_agent(new_env)
+test_game = Game("test", baseline_n_agent, human_agent(name="p"), baseline_PC=baseline_PC_agent, baseline_ER=(_coconut_lambda_0), nonseq_d_PC=nonseq_d_PC_agent, nonseq_d_ER=(_coconut_lambda_1), seq_d_PC=seq_d_PC_agent, seq_d_ER=(_coconut_lambda_2), default_run_steps=100, **common_params)
 
 
 if __name__ == "__main__":
     print("\nRunning baseline game...")
-    (print)(baseline_game.run(1))
-
-    print("\nRunning conservative sequential defection game with d = {_coconut_format_0}...".format(_coconut_format_0=(conservative_seq_d_game.env['d'])))
-    (print)(conservative_seq_d_game.run(1000))
-
-    print("\nRunning approximate sequential defection game with d = {_coconut_format_0}...".format(_coconut_format_0=(approx_seq_d_game.env['d'])))
-    (print)(approx_seq_d_game.run(5000))
+    (print)(baseline_game.run())
 
     print("\nRunning conservative non-sequential two defection game...")
-    (print)(conservative_nonseq_2d_game.run(500))
+    (print)(conservative_nonseq_d_game.run())
 
-    print("\nRunning non-sequential two defection game...")
-    (print)(nonseq_2d_game.run(500))
+    print("\nRunning conservative sequential defection game with d = {_coconut_format_0}...".format(_coconut_format_0=(conservative_seq_d_game.env['d'])))
+    (print)(conservative_seq_d_game.run())
 
-    print("\nRunning approximate non-sequential defection game with d = {_coconut_format_0}...".format(_coconut_format_0=(approx_nonseq_d_game.env['d'])))
-    (print)(approx_nonseq_d_game.run(500))
+    print("\nRunning test game...")
+    (print)(test_game.run())

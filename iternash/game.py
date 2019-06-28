@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x453fe120
+# __coconut_hash__ = 0x712dbd8d
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -31,9 +31,10 @@ class Game(_coconut.object):
 
     Parameters:
     - _name_ is the name of the game.
-    - _agents_ are agents to include in the environment.
-    - _named_agents_ are names mapped to agents to give those names to
-        in the environment.
+    - _agents_ are agents to include in the environment. (name, agent) tuples
+        are also allowed.
+    - _named_agents_ are names mapped to agents to give those names to in the
+        env. _named_agents come after agents in an arbitrary order.
     - _independent_update_ controls whether agents are evaluated independently
         or sequentially (defaults to False). When the updates are sequential
         the order of agents passed to Game will be the order in which they
@@ -49,16 +50,18 @@ class Game(_coconut.object):
             _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("name")
             agents = _coconut_match_to_args[2:]
             _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("independent_update") if "independent_update" in _coconut_match_to_kwargs else False
+            _coconut_match_temp_3 = _coconut_match_to_kwargs.pop("default_run_steps") if "default_run_steps" in _coconut_match_to_kwargs else 1000
             if _coconut.isinstance(_coconut_match_temp_1, Str):
                 self = _coconut_match_temp_0
                 name = _coconut_match_temp_1
                 independent_update = _coconut_match_temp_2
+                default_run_steps = _coconut_match_temp_3
                 named_agents = _coconut_match_to_kwargs
                 _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, independent_update=False, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, independent_update=False, **named_agents):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, independent_update=False, default_run_steps=1000, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, independent_update=False, default_run_steps=1000, **named_agents):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
@@ -66,6 +69,7 @@ class Game(_coconut.object):
         self.env = {"game": self}
         self.agents = []
         self.independent_update = independent_update
+        self.default_run_steps = default_run_steps
         self.i = 0
         self.add_agents(*agents, **named_agents)
 
@@ -113,9 +117,9 @@ class Game(_coconut.object):
         self.i += 1
         return self.env
 
-    def run(self, n):
+    def run(self, n=None):
         """Run _n_ steps of iterative action selection."""
-        for _ in tqdm(range(n)):
+        for _ in tqdm(range((self.default_run_steps if n is None else n))):
             self.step()
         return self.finalize()
 

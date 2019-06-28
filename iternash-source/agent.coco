@@ -1,4 +1,4 @@
-import math
+from pprint import pprint
 
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
@@ -26,9 +26,16 @@ class Agent:
         self.default = default
         self.period = period
 
-    def __call__(self, env) =
+    def __call__(self, env):
         """Call the agent's actor function."""
-        self.actor(env)
+        try:
+            return self.actor(env)
+        except:
+            print(f"Error calculating action for {self}:")
+            raise
+
+    def __repr__(self) =
+        f"Agent({self.name})"
 
     def has_default(self) =
         """Whether the agent has a default."""
@@ -71,24 +78,19 @@ def agent(name_or_agent_func=None, **kwargs):
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
-default_vars = {
-    "math": math,
-}
-
 default_expr_aliases = {
     "\n": "",
     "^": "**",
 }
 
-def expr_agent(name, expr, vars=default_vars, aliases=default_expr_aliases, **kwargs):
+def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
     - _name_ is the name the agent's action will be assigned in the environment.
     - _expr_ is an expression to be evaluated in the environment to determine the
         agent's action.
-    - _vars_ are the globals to be used for evaluating the agent's action (the
-        default is {"math": math}).
+    - _vars_ are the globals to be used for evaluating the agent's action.
     - _aliases_ are simple replacements to be made to the expr before evaluating it
         (the default is {"\\n": "", "^": "**"}).
     - _kwargs_ are passed to `Agent`.
@@ -96,6 +98,16 @@ def expr_agent(name, expr, vars=default_vars, aliases=default_expr_aliases, **kw
     for k, v in aliases.items():
         expr = expr.replace(k, v)
     return Agent(name, eval$(expr, vars), **kwargs)
+
+
+def human_agent(name, vars={}, aliases=default_expr_aliases, **kwargs):
+    """Construct an agent that prompts a human for an expression as in expr_agent."""
+    def human_actor(env) =
+        clean_env = env.copy()
+        del clean_env["game"]
+        pprint(clean_env)
+        eval(input(f"{name} = "), vars, env)
+    return Agent(name, human_actor, **kwargs)
 
 
 def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs):
@@ -123,13 +135,17 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
     return Agent(name, bbopt_actor, **kwargs)
 
 
-def debug_agent(debug_str, period, name=None, **kwargs) =
-    """Construct an agent that prints a formatted debug string. Most useful
-    with Game.attach to print at a specific interval.
+def debug_agent(debug_str, name=None, **kwargs) =
+    """Construct an agent that prints a formatted debug string.
 
     Example:
         debug_agent("x = {x}")
             is roughly equivalent to
         Agent(None, env -> print("x = {x}".format(**env)))
     """
-    Agent(name, env -> debug_str.format(**env) |> printret, period=period, **kwargs)
+    Agent(name, env -> debug_str.format(**env) |> printret, **kwargs)
+
+
+def debug_all_agent(**kwargs) =
+    """Construct an agent that prints the entire env."""
+    debug_agent("{game.env}", **kwargs)
