@@ -45,6 +45,7 @@ class Game:
             if a.has_default() and a.name is not None:
                 self.env[a.name] = a.default
             self.agents.append(a)
+        return self
 
     def attach(self, agent, period, name=None):
         """Add an agent to be called at interval _period_."""
@@ -53,6 +54,7 @@ class Game:
         else:
             agent = Agent(name, agent, period=period)
         self.agents.append(agent)
+        return self
 
     def step(self):
         """Perform one full step of action selection."""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa4af90f3
+# __coconut_hash__ = 0x75e408bf
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -92,14 +92,14 @@ seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", d
 
 
 # black-box-optimized p agent
-bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.000001, 1), util_func=lambda env: log(clip(env["ER"])), file=__file__, default=0.9)
+bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.00001, 1), util_func=lambda env: log(clip(env["ER"])), file=__file__, default=0.9)
 
 
 # black-box-optimized n agent that attempts to set PC to eps
 bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)), util_func=expr_agent(None, "-abs(log(PC) - log(eps))", vars={"log": log}), file=__file__, default=common_params["m"])
 
 
-# agent that prints n, p, PC every 100 steps
+# agent that prints n, p, PC, ER every 100 steps
 periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period=100)
 
 
@@ -139,11 +139,17 @@ if __name__ == "__main__":
     print("\nRunning baseline game...")
     (print)(baseline_game.run())
 
-    print("\nRunning conservative non-sequential two defection game...")
+    print("\nRunning conservative non-sequential {_coconut_format_0} defection game...".format(_coconut_format_0=(common_params['d'])))
     (print)(conservative_nonseq_d_game.run())
 
-    print("\nRunning conservative sequential defection game with d = {_coconut_format_0}...".format(_coconut_format_0=(conservative_seq_d_game.env['d'])))
+    print("\nRunning conservative sequential {_coconut_format_0} defection game...".format(_coconut_format_0=(common_params['d'])))
     (print)(conservative_seq_d_game.run())
 
-    print("\nRunning test game...")
-    (print)(test_game.run())
+    print("\nRunning conservative non-sequential {_coconut_format_0} defection game...".format(_coconut_format_0=(common_params['d'] + 1)))
+    (print)(conservative_nonseq_d_game.add_agents(d=common_params['d'] + 1).run())
+
+    print("\nRunning conservative sequential {_coconut_format_0} defection game...".format(_coconut_format_0=(common_params['d'] + 1)))
+    (print)(conservative_seq_d_game.add_agents(d=common_params['d'] + 1).run())
+
+# print("\nRunning test game...")
+# test_game.run() |> print

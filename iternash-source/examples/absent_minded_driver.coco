@@ -112,7 +112,7 @@ seq_d_PC_agent = expr_agent(
 # black-box-optimized p agent
 bbopt_p_agent = bbopt_agent(
     name="p",
-    tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.000001, 1),
+    tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.00001, 1),
     util_func=env -> log(clip(env["ER"])),
     file=__file__,
     default=0.9,
@@ -130,7 +130,7 @@ bbopt_n_agent = bbopt_agent(
 )
 
 
-# agent that prints n, p, PC every 100 steps
+# agent that prints n, p, PC, ER every 100 steps
 periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period=100)
 
 
@@ -205,11 +205,17 @@ if __name__ == "__main__":
     print("\nRunning baseline game...")
     baseline_game.run() |> print
 
-    print("\nRunning conservative non-sequential two defection game...")
+    print(f"\nRunning conservative non-sequential {common_params['d']} defection game...")
     conservative_nonseq_d_game.run() |> print
 
-    print(f"\nRunning conservative sequential defection game with d = {conservative_seq_d_game.env['d']}...")
+    print(f"\nRunning conservative sequential {common_params['d']} defection game...")
     conservative_seq_d_game.run() |> print
 
-    print("\nRunning test game...")
-    test_game.run() |> print
+    print(f"\nRunning conservative non-sequential {common_params['d']+1} defection game...")
+    conservative_nonseq_d_game.add_agents(d=common_params['d']+1).run() |> print
+
+    print(f"\nRunning conservative sequential {common_params['d']+1} defection game...")
+    conservative_seq_d_game.add_agents(d=common_params['d']+1).run() |> print
+
+    # print("\nRunning test game...")
+    # test_game.run() |> print

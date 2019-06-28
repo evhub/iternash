@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x10ffe088
+# __coconut_hash__ = 0x5a063dce
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -95,6 +95,7 @@ class Game(_coconut.object):
             if a.has_default() and a.name is not None:
                 self.env[a.name] = a.default
             self.agents.append(a)
+        return self
 
     def attach(self, agent, period, name=None):
         """Add an agent to be called at interval _period_."""
@@ -103,6 +104,7 @@ class Game(_coconut.object):
         else:
             agent = Agent(name, agent, period=period)
         self.agents.append(agent)
+        return self
 
     def step(self):
         """Perform one full step of action selection."""
