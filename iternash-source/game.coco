@@ -14,9 +14,9 @@ class Game:
     - _named_agents_ are names mapped to agents to give those names to in the
         env. _named_agents come after agents in an arbitrary order.
     - _independent_update_ controls whether agents are evaluated independently
-        or sequentially (defaults to False). When the updates are sequential
-        the order of agents passed to Game will be the order in which they
-        are evaluated at each step.
+        or sequentially (defaults to False, i.e. sequentially). When the updates
+        are sequential the order of agents passed to Game will be the order in
+        which they are evaluated at each step.
     """
     final_step = False
 

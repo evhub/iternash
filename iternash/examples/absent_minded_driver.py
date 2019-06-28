@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x612fd18a
+# __coconut_hash__ = 0xa4af90f3
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -78,7 +78,7 @@ def nonseq_d_PC_agent(env):
 # probability of catastrophe in the sequential defection game
     return comb(m, d) * p**(m - d) * (1 - p)**d * (_coconut_forward_compose(hyp2f1, float))(1, d - m, d + 1, (p - 1) / p)
 @agent(name="PC", default=0.1)
-def _exact_seq_d_PC_agent(env):
+def exact_seq_d_PC_agent(env):
     m = env["m"]
     d = env["d"]
     PC = 0
@@ -88,7 +88,7 @@ def _exact_seq_d_PC_agent(env):
         """, vars={"i": i, "comb": comb})(env)
     return PC
 
-seq_d_PC_agent = expr_agent(name="PC", expr="(1-p)**(d-1) * (1 - p**(m-d+1))", default=0.1)
+seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", default=0.1)
 
 
 # black-box-optimized p agent

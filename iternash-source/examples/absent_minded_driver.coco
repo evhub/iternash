@@ -92,7 +92,7 @@ def nonseq_d_PC_agent(env) =
 
 # probability of catastrophe in the sequential defection game
 @agent(name="PC", default=0.1)
-def _exact_seq_d_PC_agent(env):
+def exact_seq_d_PC_agent(env):
     m = env["m"]
     d = env["d"]
     PC = 0
@@ -104,7 +104,7 @@ def _exact_seq_d_PC_agent(env):
 
 seq_d_PC_agent = expr_agent(
     name="PC",
-    expr="(1-p)**(d-1) * (1 - p**(m-d+1))",
+    expr="(1 - p**(m-d+1)) * (1-p)**(d-1)",
     default=0.1,
 )
 
