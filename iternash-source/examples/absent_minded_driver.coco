@@ -41,7 +41,7 @@ baseline_p_agent = expr_agent(
         (n * p_mod)
         / (n * p_mod + m)
         * (r_m - r_n)/(r_m - r_f)
-    )^(1/(m-1))""",
+    )**(1/(m-1))""",
     default=0.9,
 )
 
@@ -49,8 +49,15 @@ baseline_p_agent = expr_agent(
 # probability of catastrophe in the sequential defection game
 seq_d_PC_agent = expr_agent(
     name="PC",
-    expr="(1-p)^(d-1) * (1 - p^(m-d+1))",
+    expr="(1-p)**(d-1) * (1 - p**(m-d+1))",
     default=0.1,
+)
+
+
+# generic expected reward calculator
+ER_agent = expr_agent(
+    name="ER",
+    expr="r_n * (1 - (p + (1-p)*(1-p_mod))**n) + (p + (1-p)*(1-p_mod))**n * (r_m * PC + r_f * (1 - PC))",
 )
 
 
@@ -60,6 +67,7 @@ seq_d_PC_agent = expr_agent(
 def seq_d_p_agent(env):
     inner_p = env |> expr_agent(
         name="inner_p",
+        # TODO: Check that the (r_m - r_n)/(r_m - r_f) factor is correct here.
         expr="""
         (n * p_mod - (d-1)/(1-p))
         / (n * p_mod + m - (d-1)/(1-p))
@@ -88,7 +96,7 @@ bbopt_n_agent = bbopt_agent(
 # probability of catastrophe in the non-sequential two defection game
 nonseq_2d_PC_agent = expr_agent(
     name="PC",
-    expr="1 - p^m - m*(1-p)*p^(m-1)",
+    expr="1 - p**m - m*(1-p)*p**(m-1)",
     default=0.1,
 )
 
@@ -96,11 +104,12 @@ nonseq_2d_PC_agent = expr_agent(
 # optimal defection probability in the non-sequential two defection game
 nonseq_2d_p_agent = expr_agent(
     name="p",
+    # TODO: Check that the (r_m - r_n)/(r_m - r_f) factor is correct here.
     expr="""(
         (n * p_mod)
         / (n * p_mod + m*(m-1))
         * (r_m - r_n)/(r_m - r_f)
-    )^(1/(m-1))""",
+    )**(1/(m-1))""",
     default=0.9,
 )
 
@@ -119,13 +128,7 @@ def nonseq_d_PC_agent(env) =
 nonseq_d_bbopt_p_agent = bbopt_agent(
     name="p",
     tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.000001, 1),
-    util_func=(def env ->
-        p = env["p"];
-        p_mod = env["p_mod"];
-        n = env["n"];
-        PC = env["PC"];
-        (p + (1-p)*(1-p_mod))**n * PC
-    ),
+    util_func=.["ER"],
     file=__file__,
     default=0.9,
 )
@@ -141,6 +144,7 @@ baseline_game = Game(
     baseline_n_agent,
     baseline_p_agent,
     seq_d_PC_agent,
+    ER_agent,
     d=1,
     **common_params,
 )
@@ -153,6 +157,7 @@ conservative_seq_d_game = Game(
     baseline_n_agent,
     seq_d_p_agent,
     seq_d_PC_agent,
+    ER_agent,
     printing_debugger.clone(period=200),
     # necessary number of sequential defections
     d=2,
@@ -167,9 +172,23 @@ approx_seq_d_game = Game(
     bbopt_n_agent.clone(period=10),
     seq_d_p_agent,
     seq_d_PC_agent,
+    ER_agent,
     printing_debugger.clone(period=500),
     # necessary number of sequential defections
     d=2,
+    **common_params,
+)
+
+
+# absent-minded driver game where catastrophe occurs upon the
+#  second defection during deployment with a conservative n
+conservative_nonseq_2d_game = Game(
+    "nonseq_2d",
+    baseline_n_agent,
+    nonseq_2d_p_agent,
+    nonseq_2d_PC_agent,
+    ER_agent,
+    printing_debugger,
     **common_params,
 )
 
@@ -181,18 +200,20 @@ nonseq_2d_game = Game(
     bbopt_n_agent,
     nonseq_2d_p_agent,
     nonseq_2d_PC_agent,
+    ER_agent,
     printing_debugger,
     **common_params,
 )
 
 
 # absent-minded driver game where catastrophe occurs upon the
-#  dth defection during deployment
-nonseq_d_game = Game(
+#  dth defection during deployment approximated by BBopt agents
+approx_nonseq_d_game = Game(
     "nonseq_d",
+    nonseq_d_PC_agent,
+    ER_agent,
     nonseq_d_bbopt_p_agent,
     bbopt_n_agent,
-    nonseq_d_PC_agent,
     printing_debugger,
     independent_update=True,
     # necessary number of non-sequential defections
@@ -202,17 +223,20 @@ nonseq_d_game = Game(
 
 
 if __name__ == "__main__":
-    print("Running baseline game...")
+    print("\nRunning baseline game...")
     baseline_game.run(1) |> print
 
-    print(f"Running conservative sequential defection game with d = {conservative_seq_d_game.env['d']}...")
+    print(f"\nRunning conservative sequential defection game with d = {conservative_seq_d_game.env['d']}...")
     conservative_seq_d_game.run(1000) |> print
 
-    print(f"Running approximate sequential defection game with d = {approx_seq_d_game.env['d']}...")
+    print(f"\nRunning approximate sequential defection game with d = {approx_seq_d_game.env['d']}...")
     approx_seq_d_game.run(5000) |> print
 
-    print("Running non-sequential two defection game...")
+    print("\nRunning conservative non-sequential two defection game...")
+    conservative_nonseq_2d_game.run(500) |> print
+
+    print("\nRunning non-sequential two defection game...")
     nonseq_2d_game.run(500) |> print
 
-    print(f"Running approximate non-sequential defection game with d = {nonseq_d_game.env['d']}...")
-    nonseq_d_game.run(500) |> print
+    print(f"\nRunning approximate non-sequential defection game with d = {approx_nonseq_d_game.env['d']}...")
+    approx_nonseq_d_game.run(500) |> print
