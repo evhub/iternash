@@ -12,7 +12,14 @@ setuptools.setup(
     install_requires=[
         "tqdm",
         "bbopt",
-        "scipy",
-        "mpmath",
     ],
+    extras_require={
+        "examples": [
+            "scipy",
+            "mpmath",
+        ],
+        "dev": [
+            "pdoc3",
+        ],
+    },
 )

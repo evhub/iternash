@@ -2,9 +2,17 @@
 test: clean install
 	python ./iternash/examples/absent_minded_driver.py
 
+.PHONY: docs
+docs: dev
+	pdoc ./iternash -o ./docs --force
+
+.PHONY: dev
+dev: build
+	pip install -Ue .[examples,dev]
+
 .PHONY: install
 install: build
-	pip install -Ue .
+	pip install -Ue .[examples]
 
 .PHONY: build
 build:
@@ -16,7 +24,7 @@ setup:
 	pip install -U setuptools pip coconut-develop[watch]
 
 .PHONY: upload
-upload: clean install
+upload: wipe docs
 	python3 setup.py sdist bdist_wheel
 	pip3 install -U --ignore-installed twine
 	twine upload dist/*
@@ -31,7 +39,7 @@ clean:
 
 .PHONY: wipe
 wipe: clean
-	rm -rf ./iternash ./setup.py
+	rm -rf ./iternash ./setup.py ./docs
 
 .PHONY: watch
 watch: install
