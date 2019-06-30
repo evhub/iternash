@@ -15,3 +15,7 @@ Functions
     
 `real(x)`
 :   Get only the real part of x.
+
+    
+`safe_log(x)`
+:   Safe log allows calling log on floats that could be zero.

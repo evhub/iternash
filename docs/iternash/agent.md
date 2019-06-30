@@ -54,7 +54,7 @@ Functions
 :   Construct an agent that prints the entire env.
 
     
-`expr_agent(name, expr, vars={}, aliases={'\n': '', '^': '**'}, **kwargs)`
+`expr_agent(name, expr, vars={}, aliases={'\n': '', '^': '**'}, eval=<built-in function eval>, **kwargs)`
 :   Construct an agent that computes its action by evaluating an expression.
     
     Parameters:
@@ -64,6 +64,8 @@ Functions
     - _vars_ are the globals to be used for evaluating the agent's action.
     - _aliases_ are simple replacements to be made to the expr before evaluating it
         (the default is {"\n": "", "^": "**"}).
+    - _eval_ is the eval function to use (defaults to Python eval, but can be set to
+        coconut.convenience.coconut_eval instead to use Coconut eval).
     - _kwargs_ are passed to `Agent`.
 
     
@@ -73,7 +75,7 @@ Functions
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x1025c7ef20>, period=1)`
+`Agent(name, actor, default=<object object at 0x1027062f20>, period=1)`
 :   Agent class.
     
     Parameters:
@@ -85,7 +87,7 @@ Classes
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x1025c7ef30>, period=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x1027062f30>, period=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `has_default(self)`

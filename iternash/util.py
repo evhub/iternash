@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa2eaa039
+# __coconut_hash__ = 0xe1c520f5
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -20,6 +20,8 @@ if _coconut_sys.version_info >= (3,):
 
 # Compiled Coconut: -----------------------------------------------------------
 
+from math import log
+
 sys = _coconut_sys
 
 
@@ -34,12 +36,17 @@ def printret(obj):
 
 def clip(x, m=sys.float_info.epsilon, M=1 - sys.float_info.epsilon):
     """Clip x into [m, M] (defaults to [eps, 1-eps])."""
-    if x <= m:
+    if m is not None and x <= m:
         return m
-    elif x >= M:
+    elif M is not None and x >= M:
         return M
     else:
         return x
+
+
+def safe_log(x):
+    """Safe log allows calling log on floats that could be zero."""
+    return log(x if x != 0 else sys.float_info.epsilon)
 
 
 def real(x):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xdd4c705a
+# __coconut_hash__ = 0x307cb743
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -103,7 +103,7 @@ def agent(name_or_agent_func=None, **kwargs):
 
 default_expr_aliases = {"\n": "", "^": "**"}
 
-def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, **kwargs):
+def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
@@ -113,6 +113,8 @@ def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, **kwargs):
     - _vars_ are the globals to be used for evaluating the agent's action.
     - _aliases_ are simple replacements to be made to the expr before evaluating it
         (the default is {"\\n": "", "^": "**"}).
+    - _eval_ is the eval function to use (defaults to Python eval, but can be set to
+        coconut.convenience.coconut_eval instead to use Coconut eval).
     - _kwargs_ are passed to `Agent`.
     """
     for k, v in aliases.items():

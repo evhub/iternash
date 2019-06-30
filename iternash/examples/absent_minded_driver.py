@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x75e408bf
+# __coconut_hash__ = 0x982e6dcd
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -31,7 +31,6 @@ from iternash import expr_agent
 from iternash import bbopt_agent
 from iternash import debug_agent
 from iternash import human_agent
-from iternash.util import clip
 
 
 common_params = dict(d=2, m=100, eps=0.01, p_mod=0.9, r_n=0, r_m=1, r_f=0)
@@ -91,8 +90,8 @@ def exact_seq_d_PC_agent(env):
 seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", default=0.1)
 
 
-# black-box-optimized p agent
-bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.00001, 1), util_func=lambda env: log(clip(env["ER"])), file=__file__, default=0.9)
+# black-box-optimized p agent that attempts to maximize ER
+bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.00001, 1), util_func=_coconut.operator.itemgetter("ER"), file=__file__, default=0.9)
 
 
 # black-box-optimized n agent that attempts to set PC to eps

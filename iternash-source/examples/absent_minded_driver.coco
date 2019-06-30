@@ -11,7 +11,6 @@ from iternash import (
     debug_agent,
     human_agent,
 )
-from iternash.util import clip
 
 
 common_params = dict(
@@ -109,11 +108,11 @@ seq_d_PC_agent = expr_agent(
 )
 
 
-# black-box-optimized p agent
+# black-box-optimized p agent that attempts to maximize ER
 bbopt_p_agent = bbopt_agent(
     name="p",
     tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.00001, 1),
-    util_func=env -> log(clip(env["ER"])),
+    util_func=.["ER"],
     file=__file__,
     default=0.9,
 )
