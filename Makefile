@@ -1,10 +1,10 @@
-.PHONY: test
-test: clean install
-	python ./iternash/examples/absent_minded_driver.py
-
 .PHONY: docs
 docs: dev
 	pdoc ./iternash -o ./docs --force
+
+.PHONY: test
+test: clean install
+	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: dev
 dev: build
@@ -17,7 +17,7 @@ install: build
 .PHONY: build
 build:
 	coconut setup.coco --no-tco --strict
-	coconut "iternash-source" iternash --no-tco --strict --jobs sys
+	coconut iternash-source iternash --no-tco --strict --jobs sys
 
 .PHONY: setup
 setup:
@@ -43,4 +43,4 @@ wipe: clean
 
 .PHONY: watch
 watch: install
-	coconut "iternash-source" iternash --watch --no-tco --strict
+	coconut iternash-source iternash --watch --no-tco --strict

@@ -104,11 +104,11 @@ def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **k
 
 def human_agent(name, vars={}, aliases=default_expr_aliases, **kwargs):
     """Construct an agent that prompts a human for an expression as in expr_agent."""
-    def human_actor(env) =
+    def human_actor(env):
         clean_env = env.copy()
         del clean_env["game"]
         pprint(clean_env)
-        eval(input(f"{name} = "), vars, env)
+        return eval(input(f"{name} = "), vars, env)
     return Agent(name, human_actor, **kwargs)
 
 
