@@ -6,13 +6,13 @@
 
 To install `iternash`, just
 ```
-pip install iternash
+pip install iternash[examples]
 ```
 
 ## Documentation
 
 For information on how to use `iternash`, see:
 
-- [`agent.coco`](https://github.com/evhub/iternash/blob/master/iternash-source/agent.coco) for documentation on the various different ways of defining agents,
-- [`game.coco`](https://github.com/evhub/iternash/blob/master/iternash-source/game.coco) for documentation on creating and simulating a game, and
+- [`agent.md`](https://github.com/evhub/iternash/blob/master/docs/iternash/agent.md) for documentation on the various different ways of defining agents,
+- [`game.md`](https://github.com/evhub/iternash/blob/master/docs/iternash/game.md) for documentation on creating and simulating a game, and
 - [`absent_minded_driver.coco`](https://github.com/evhub/iternash/blob/master/iternash-source/examples/absent_minded_driver.coco) for an example of `iternash` in action.

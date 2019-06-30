@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="iternash",
-    version="0.1.5",
+    version="0.1.6",
     description="Iterative Nash equilibrium finder for simulating continuous games in Python/Coconut.",
     url="https://github.com/evhub/iternash",
     author="Evan Hubinger",
