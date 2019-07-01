@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5a6e22d4
+# __coconut_hash__ = 0xfb78c7b
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -125,9 +125,7 @@ def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **k
 def human_agent(name, vars={}, aliases=default_expr_aliases, **kwargs):
     """Construct an agent that prompts a human for an expression as in expr_agent."""
     def human_actor(env):
-        clean_env = env.copy()
-        del clean_env["game"]
-        pprint(clean_env)
+        pprint(env.get_clean_env())
         return eval(input("{_coconut_format_0} = ".format(_coconut_format_0=(name))), vars, env)
     return Agent(name, human_actor, **kwargs)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5a063dce
+# __coconut_hash__ = 0xe6ba34de
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -119,15 +119,28 @@ class Game(_coconut.object):
         self.i += 1
         return self.env
 
-    def run(self, n=None):
-        """Run _n_ steps of iterative action selection."""
-        for _ in tqdm(range((self.default_run_steps if n is None else n))):
-            self.step()
-        return self.finalize()
+    def get_clean_env(self):
+        """Get a copy of the environment without the game."""
+        clean_env = self.env.copy()
+        del clean_env["game"]
+        return clean_env
 
     @property
     def max_period(self):
         return max((a.period for a in self.agents))
+
+    def run(self, max_steps=None, stop_at_equilibrium=True):
+        """Run iterative action selection for _max_steps_ or
+        until equilibrium is reached if _stop_at_equilibrium_."""
+        prev_env = self.get_clean_env()
+        for _ in tqdm(range((lambda _coconut_none_coalesce_item: self.default_run_steps if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(max_steps))):
+            self.step()
+            if stop_at_equilibrium and self.i % self.max_period == 0:
+                new_env = self.get_clean_env()
+                if new_env == prev_env:
+                    break
+                prev_env = new_env
+        return self.finalize()
 
     def finalize(self):
         """Gather final parameters."""

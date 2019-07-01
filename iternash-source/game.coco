@@ -69,15 +69,28 @@ class Game:
         self.i += 1
         return self.env
 
-    def run(self, n=None):
-        """Run _n_ steps of iterative action selection."""
-        for _ in tqdm(range(n ?? self.default_run_steps)):
-            self.step()
-        return self.finalize()
+    def get_clean_env(self):
+        """Get a copy of the environment without the game."""
+        clean_env = self.env.copy()
+        del clean_env["game"]
+        return clean_env
 
     @property
     def max_period(self) =
         max(a.period for a in self.agents)
+
+    def run(self, max_steps=None, stop_at_equilibrium=True):
+        """Run iterative action selection for _max_steps_ or
+        until equilibrium is reached if _stop_at_equilibrium_."""
+        prev_env = self.get_clean_env()
+        for _ in tqdm(range(max_steps ?? self.default_run_steps)):
+            self.step()
+            if stop_at_equilibrium and self.i % self.max_period == 0:
+                new_env = self.get_clean_env()
+                if new_env == prev_env:
+                    break
+                prev_env = new_env
+        return self.finalize()
 
     def finalize(self):
         """Gather final parameters."""

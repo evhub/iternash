@@ -140,7 +140,6 @@ baseline_game = Game(
     baseline_p_agent,
     baseline_PC_agent,
     ER_agent,
-    default_run_steps=1,
     **common_params,
 )
 

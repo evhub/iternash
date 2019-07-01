@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x982e6dcd
+# __coconut_hash__ = 0x86863a6
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -103,7 +103,7 @@ periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period
 
 
 # absent-minded driver game where catastrophe occurs on the first defection
-baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC_agent, ER_agent, default_run_steps=1, **common_params)
+baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC_agent, ER_agent, **common_params)
 
 
 # absent-minded driver game where catastrophe occurs upon the

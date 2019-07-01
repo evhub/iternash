@@ -39,8 +39,12 @@ Classes
     `finalize(self)`
     :   Gather final parameters.
 
-    `run(self, n=None)`
-    :   Run _n_ steps of iterative action selection.
+    `get_clean_env(self)`
+    :   Get a copy of the environment without the game.
+
+    `run(self, max_steps=None, stop_at_equilibrium=True)`
+    :   Run iterative action selection for _max_steps_ or
+        until equilibrium is reached if _stop_at_equilibrium_.
 
     `step(self)`
     :   Perform one full step of action selection.
