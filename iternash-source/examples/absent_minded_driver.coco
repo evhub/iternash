@@ -146,6 +146,7 @@ baseline_game = Game(
 
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment with a conservative n
+#  and p approximated by BBopt
 conservative_nonseq_d_game = Game(
     "conservative_nonseq_d",
     baseline_n_agent,

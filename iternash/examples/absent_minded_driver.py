@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x86863a6
+# __coconut_hash__ = 0xb0b851e
 
-# Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.0-post_dev41 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -108,6 +108,7 @@ baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC
 
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment with a conservative n
+#  and p approximated by BBopt
 conservative_nonseq_d_game = Game("conservative_nonseq_d", baseline_n_agent, bbopt_p_agent, nonseq_d_PC_agent, ER_agent, periodic_debugger, default_run_steps=500, **common_params)
 
 
