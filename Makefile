@@ -1,10 +1,16 @@
+.PHONY: all
+all: clean docs run
+
+.PHONY: test
+test: clean install run
+
+.PHONY: run
+run:
+	python ./iternash/examples/absent_minded_driver.py
+
 .PHONY: docs
 docs: dev
 	pdoc ./iternash -o ./docs --force
-
-.PHONY: test
-test: clean install
-	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: dev
 dev: build
