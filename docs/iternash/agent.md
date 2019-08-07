@@ -72,10 +72,14 @@ Functions
 `human_agent(name, vars={}, aliases={'\n': '', '^': '**'}, **kwargs)`
 :   Construct an agent that prompts a human for an expression as in expr_agent.
 
+    
+`initializer_agent(name, constant)`
+:   Construct an agent that just initializes name to the given constant.
+
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0xf20314f20>, period=1)`
+`Agent(name, actor, default=<object object at 0xf21c68f20>, period=1, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -84,10 +88,11 @@ Classes
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _debug_ controls whether the agent should print what it's doing.
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0xf20314f30>, period=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0xf21c68f30>, period=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `has_default(self)`

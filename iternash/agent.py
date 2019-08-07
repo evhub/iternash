@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x10e83c1
+# __coconut_hash__ = 0x6fa65068
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -41,20 +41,25 @@ class Agent(_coconut.object):
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _debug_ controls whether the agent should print what it's doing.
     """
 
-    def __init__(self, name, actor, default=no_default, period=1):
+    def __init__(self, name, actor, default=no_default, period=1, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
         self.period = period
+        self.debug = debug
 
     def __call__(self, env):
         """Call the agent's actor function."""
         try:
-            return self.actor(env)
+            result = self.actor(env)
+            if self.debug:
+                print("{_coconut_format_0}({_coconut_format_1}) = {_coconut_format_2}".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(result)))
+            return result
         except:
-            print("Error calculating action for {_coconut_format_0}:".format(_coconut_format_0=(self)))
+            print("Error calculating action for {_coconut_format_0}({_coconut_format_1}):".format(_coconut_format_0=(self), _coconut_format_1=(env)))
             raise
 
     def __repr__(self):
@@ -176,3 +181,8 @@ def debug_agent(debug_str, name=None, **kwargs):
 def debug_all_agent(**kwargs):
     """Construct an agent that prints the entire env."""
     return debug_agent("{game.env}", **kwargs)
+
+
+def initializer_agent(name, constant):
+    """Construct an agent that just initializes name to the given constant."""
+    return Agent(name, lambda env: constant, default=constant, period=float("inf"))

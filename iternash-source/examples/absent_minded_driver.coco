@@ -1,4 +1,5 @@
 from math import log
+from pprint import pprint
 
 from scipy.special import comb
 from mpmath import hyp2f1
@@ -15,13 +16,13 @@ from iternash import (
 
 common_params = dict(
     # necessary number of defections
-    d=2,
+    d=1,
     # number of deployment episodes
     m=100,
     # desired PC for the n agent to attempt to achieve
     eps=0.01,
     # probability of training defection leading to no reward for that agent
-    p_mod=0.9,
+    p_mod=1.0,
     # utility for defecting during training
     r_n=0,
     # utility for defecting during deployment
@@ -129,6 +130,20 @@ bbopt_n_agent = bbopt_agent(
 )
 
 
+# empirical formula for PC in the conservative nonseq d game
+nonseq_d_PC_guess = expr_agent(
+    name="nonseq_d_PC_guess",
+    expr="eps**d / 2**((d-1)*(d-3))",
+)
+
+
+# empirical formula for PC in the conservative seq d game
+seq_d_PC_guess = expr_agent(
+    name="seq_d_PC_guess",
+    expr="eps**d / (m**(d-1) * 2**((d-1)*(d-6)/2))",
+)
+
+
 # agent that prints n, p, PC, ER every 100 steps
 periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period=100)
 
@@ -153,6 +168,7 @@ conservative_nonseq_d_game = Game(
     bbopt_p_agent,
     nonseq_d_PC_agent,
     ER_agent,
+    nonseq_d_PC_guess,
     periodic_debugger,
     default_run_steps=500,
     **common_params,
@@ -168,6 +184,7 @@ conservative_seq_d_game = Game(
     bbopt_p_agent,
     seq_d_PC_agent,
     ER_agent,
+    seq_d_PC_guess,
     periodic_debugger,
     default_run_steps=500,
     **common_params,
@@ -200,21 +217,37 @@ test_game = Game(
 )
 
 
+def run_nonseq_game(d):
+    """Run non-sequential d defection game and measure PC."""
+    print(f"\nRunning conservative non-sequential {d} defection game...")
+    env = conservative_nonseq_d_game.reset(
+        name=f"conservative_nonseq_d{d}_game",
+        d=d,
+    ).run()
+    pprint(env)
+    return env["PC"]
+
+
+def run_seq_game(d):
+    """Run sequential d defection game and measure PC."""
+    print(f"\nRunning conservative sequential {d} defection game...")
+    env = conservative_seq_d_game.reset(
+        name=f"conservative_seq_d{d}_game",
+        d=d,
+    ).run()
+    pprint(env)
+    return env["PC"]
+
+
 if __name__ == "__main__":
     print("\nRunning baseline game...")
-    baseline_game.run() |> print
+    baseline_game.run() |> pprint
 
-    print(f"\nRunning conservative non-sequential {common_params['d']} defection game...")
-    conservative_nonseq_d_game.run() |> print
+    for d in range(2, 5):
+        run_nonseq_game(d)
 
-    print(f"\nRunning conservative sequential {common_params['d']} defection game...")
-    conservative_seq_d_game.run() |> print
-
-    print(f"\nRunning conservative non-sequential {common_params['d']+1} defection game...")
-    conservative_nonseq_d_game.add_agents(d=common_params['d']+1).run() |> print
-
-    print(f"\nRunning conservative sequential {common_params['d']+1} defection game...")
-    conservative_seq_d_game.add_agents(d=common_params['d']+1).run() |> print
+    for d in range(2, 5):
+        run_seq_game(d)
 
     # print("\nRunning test game...")
-    # test_game.run() |> print
+    # test_game.run() |> pprint

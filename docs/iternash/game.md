@@ -36,13 +36,18 @@ Classes
     `attach(self, agent, period, name=None)`
     :   Add an agent to be called at interval _period_.
 
-    `finalize(self)`
-    :   Gather final parameters.
+    `finalize(self, ensure_all_agents_run=True)`
+    :   Gather final parameters, running every agent again in _ensure_all_agents_run_.
 
     `get_clean_env(self)`
     :   Get a copy of the environment without the game.
 
-    `run(self, max_steps=None, stop_at_equilibrium=True)`
+    `reset(self, name, *agents, **named_agents)`
+    :   Set all default values and start the step counter. If you want to call run
+        multiple times on the same game you must explicitly call reset and if you are
+        using bbopt agents you must pass a new _name_.
+
+    `run(self, max_steps=None, stop_at_equilibrium=True, ensure_all_agents_run=True)`
     :   Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_.
 

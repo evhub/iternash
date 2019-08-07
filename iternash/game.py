@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc1cd1930
+# __coconut_hash__ = 0x77370fd6
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -24,6 +24,7 @@ from tqdm import tqdm
 
 from iternash.util import Str
 from iternash.agent import Agent
+from iternash.agent import initializer_agent
 
 
 class Game(_coconut.object):
@@ -65,13 +66,24 @@ class Game(_coconut.object):
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
-        self.name = name
-        self.env = {"game": self}
+        self.name = None
         self.agents = []
         self.independent_update = independent_update
         self.default_run_steps = default_run_steps
-        self.i = 0
+        self.reset(name, *agents, **named_agents)
+
+    def reset(self, name, *agents, **named_agents):
+        """Set all default values and start the step counter. If you want to call run
+        multiple times on the same game you must explicitly call reset and if you are
+        using bbopt agents you must pass a new _name_."""
+        self.name = (self.name if name is None else name)
         self.add_agents(*agents, **named_agents)
+        self.env = {"game": self}
+        for a in self.agents:
+            if a.has_default() and a.name is not None:
+                self.env[a.name] = a.default
+        self.i = 0
+        return self
 
     def add_agents(self, *agents, **named_agents):
         """Add the given agents/variables to the game."""
@@ -84,16 +96,12 @@ class Game(_coconut.object):
                 _coconut_match_check = True
             if _coconut_match_check:
                 if not callable(actor):
-                    assert isinstance(name, Str), "not isinstance({_coconut_format_0}, Str)".format(_coconut_format_0=(name))
-                    self.env[name] = actor
-                    continue
+                    a = initializer_agent(name, actor)
                 elif isinstance(actor, Agent):
                     a = actor.clone(name=name)
                 else:
                     a = Agent(name, actor)
             assert isinstance(a, Agent), "not isinstance({_coconut_format_0}, Agent)".format(_coconut_format_0=(a))
-            if a.has_default() and a.name is not None:
-                self.env[a.name] = a.default
             self.agents.append(a)
         return self
 
@@ -117,7 +125,6 @@ class Game(_coconut.object):
         if self.independent_update:
             self.env.update(updating_env)
         self.i += 1
-        return self.env
 
     def get_clean_env(self):
         """Get a copy of the environment without the game."""
@@ -127,9 +134,9 @@ class Game(_coconut.object):
 
     @property
     def max_period(self):
-        return max((a.period for a in self.agents))
+        return max((a.period for a in self.agents if a.period < float("inf")))
 
-    def run(self, max_steps=None, stop_at_equilibrium=True):
+    def run(self, max_steps=None, stop_at_equilibrium=True, ensure_all_agents_run=True):
         """Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_."""
         prev_env = self.get_clean_env()
@@ -140,14 +147,15 @@ class Game(_coconut.object):
                 if new_env == prev_env:
                     break
                 prev_env = new_env
-        return self.finalize()
+        return self.finalize(ensure_all_agents_run=ensure_all_agents_run)
 
-    def finalize(self):
-        """Gather final parameters."""
+    def finalize(self, ensure_all_agents_run=True):
+        """Gather final parameters, running every agent again in _ensure_all_agents_run_."""
         self.final_step = True
         try:
-            for _ in range(self.max_period):
-                self.step()
-            return self.env
+            if ensure_all_agents_run:
+                for _ in range(self.max_period):
+                    self.step()
+            return self.get_clean_env()
         finally:
             self.final_step = False
