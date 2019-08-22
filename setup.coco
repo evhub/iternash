@@ -17,6 +17,8 @@ setuptools.setup(
         "examples": [
             "scipy",
             "mpmath",
+            "matplotlib",
+            "scikit-learn",
         ],
         "dev": [
             "pdoc3",

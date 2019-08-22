@@ -1,8 +1,12 @@
-from math import log
+from math import log, exp
 from pprint import pprint
 
+from scipy.stats import linregress
 from scipy.special import comb
 from mpmath import hyp2f1
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
 
 from iternash import (
     Game,
@@ -133,14 +137,14 @@ bbopt_n_agent = bbopt_agent(
 # empirical formula for PC in the conservative nonseq d game
 nonseq_d_PC_guess = expr_agent(
     name="nonseq_d_PC_guess",
-    expr="eps**d / 2**((d-1)*(d-3))",
+    expr="eps**d * 2**((d-1)*(d+6)/10)",
 )
 
 
 # empirical formula for PC in the conservative seq d game
 seq_d_PC_guess = expr_agent(
     name="seq_d_PC_guess",
-    expr="eps**d / (m**(d-1) * 2**((d-1)*(d-6)/2))",
+    expr="eps**d / m**(d-1) * 2**((d-1)*(d+4)/3)",
 )
 
 
@@ -239,15 +243,70 @@ def run_seq_game(d):
     return env["PC"]
 
 
+def print_logregress(ds, logys, yname="y"):
+    """Print linear and quadratic regression of ds and logys."""
+    m, b, r, p, se = linregress(ds, logys)
+    print(f"\nlog({yname}) = {m} d + {b}\t(r**2 = {r**2})")
+    print(f"{yname} = {exp(b)} * 2**({m/log(2)} d))")
+    poly = PolynomialFeatures(degree=2, include_bias=False)
+    X = (
+        ds
+        |> map$(x -> [x])
+        |> list
+        |> poly.fit_transform
+    )
+    clf = linear_model.LinearRegression()
+    clf.fit(X, logys)
+    # a d**2 + b d + c
+    b, a = clf.coef_
+    c = clf.intercept_
+    print(f"log({yname}) = {a} d**2 + {b} d + {c}")
+    # (d - 1)(a d - c)
+    # a d**2 - a d - c d + c
+    # a d**2 - (a + c) d + c
+    print(f"{yname} = exp((d - 1)({a} d - {c}) + {b+a+c} d)")
+    print(f"{yname} = 2**((d - 1)({a/log(2)} d - {c/log(2)}) + {(a+b+c)/log(2)} d)")
+    print(f"{yname} = exp({a} ((d - 1)(d - {c/a}) + {1+(b+c)/a} d))")
+    print(f"{yname} = 2**({a/log(2)} ((d - 1)(d - {c/a}) + {1+(b+c)/a} d))")
+
+
 if __name__ == "__main__":
     print("\nRunning baseline game...")
-    baseline_game.run() |> pprint
+    baseline_env = baseline_game.run()
+    pprint(baseline_env)
 
-    for d in range(2, 5):
-        run_nonseq_game(d)
+    ds = range(1, 5)
+    nonseq_PCs = [baseline_env["PC"]] + [run_nonseq_game(d) for d in ds[1:]]
+    seq_PCs = [baseline_env["PC"]] + [run_seq_game(d) for d in ds[1:]]
 
-    for d in range(2, 5):
-        run_seq_game(d)
+    eps, m = common_params["eps"], common_params["m"]
+    nonseq_logys = [
+        log(PC / eps**d)
+        for d, PC in zip(ds, nonseq_PCs)
+    ]
+    seq_logys = [
+        log(PC / (eps**d / m**(d-1)))
+        for d, PC in zip(ds, seq_PCs)
+    ]
+
+    print_logregress(ds, nonseq_logys, yname="PC_nonseq / eps**d")
+    print_logregress(ds, seq_logys, yname="PC_seq / (eps**d / m**(d-1))")
+
+    # fig, axs = plt.subplots(2, 2)
+
+    # axs[0, 0].set(ylabel="non-sequential log P(C)", xlabel="required defections")
+    # axs[0, 0].plot(ds, list <| map(log, nonseq_PCs))
+
+    # axs[1, 0].set(ylabel="sequential log P(C)", xlabel="required defections")
+    # axs[1, 0].plot(ds, list <| map(log, seq_PCs))
+
+    # axs[0, 1].set(ylabel="non-sequential log(P(C)/eps**d)", xlabel="required defections")
+    # axs[0, 1].plot(ds, nonseq_logys)
+
+    # axs[1, 1].set(ylabel="sequential log(P(c)/(eps**d/m**(d-1)))", xlabel="required defections")
+    # axs[1, 1].plot(ds, seq_logys)
+
+    # plt.show()
 
     # print("\nRunning test game...")
     # test_game.run() |> pprint

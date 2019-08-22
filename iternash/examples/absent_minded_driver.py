@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x149c84e2
+# __coconut_hash__ = 0xfce43c2f
 
-# Compiled with Coconut version 1.4.1 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.1-post_dev2 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -21,10 +21,15 @@ if _coconut_sys.version_info >= (3,):
 # Compiled Coconut: -----------------------------------------------------------
 
 from math import log
+from math import exp
 from pprint import pprint
 
+from scipy.stats import linregress
 from scipy.special import comb
 from mpmath import hyp2f1
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
 
 from iternash import Game
 from iternash import agent
@@ -100,11 +105,11 @@ bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline
 
 
 # empirical formula for PC in the conservative nonseq d game
-nonseq_d_PC_guess = expr_agent(name="nonseq_d_PC_guess", expr="eps**d / 2**((d-1)*(d-3))")
+nonseq_d_PC_guess = expr_agent(name="nonseq_d_PC_guess", expr="eps**d * 2**((d-1)*(d+6)/10)")
 
 
 # empirical formula for PC in the conservative seq d game
-seq_d_PC_guess = expr_agent(name="seq_d_PC_guess", expr="eps**d / (m**(d-1) * 2**((d-1)*(d-6)/2))")
+seq_d_PC_guess = expr_agent(name="seq_d_PC_guess", expr="eps**d / m**(d-1) * 2**((d-1)*(d+4)/3)")
 
 
 # agent that prints n, p, PC, ER every 100 steps
@@ -160,15 +165,59 @@ def run_seq_game(d):
     return env["PC"]
 
 
+def print_logregress(ds, logys, yname="y"):
+    """Print linear and quadratic regression of ds and logys."""
+    m, b, r, p, se = linregress(ds, logys)
+    print("\nlog({_coconut_format_0}) = {_coconut_format_1} d + {_coconut_format_2}\t(r**2 = {_coconut_format_3})".format(_coconut_format_0=(yname), _coconut_format_1=(m), _coconut_format_2=(b), _coconut_format_3=(r**2)))
+    print("{_coconut_format_0} = {_coconut_format_1} * 2**({_coconut_format_2} d))".format(_coconut_format_0=(yname), _coconut_format_1=(exp(b)), _coconut_format_2=(m / log(2))))
+    poly = PolynomialFeatures(degree=2, include_bias=False)
+    X = ((poly.fit_transform)((list)(map(lambda x: [x], ds))))
+    clf = linear_model.LinearRegression()
+    clf.fit(X, logys)
+# a d**2 + b d + c
+    b, a = clf.coef_
+    c = clf.intercept_
+    print("log({_coconut_format_0}) = {_coconut_format_1} d**2 + {_coconut_format_2} d + {_coconut_format_3}".format(_coconut_format_0=(yname), _coconut_format_1=(a), _coconut_format_2=(b), _coconut_format_3=(c)))
+# (d - 1)(a d - c)
+# a d**2 - a d - c d + c
+# a d**2 - (a + c) d + c
+    print("{_coconut_format_0} = exp((d - 1)({_coconut_format_1} d - {_coconut_format_2}) + {_coconut_format_3} d)".format(_coconut_format_0=(yname), _coconut_format_1=(a), _coconut_format_2=(c), _coconut_format_3=(b + a + c)))
+    print("{_coconut_format_0} = 2**((d - 1)({_coconut_format_1} d - {_coconut_format_2}) + {_coconut_format_3} d)".format(_coconut_format_0=(yname), _coconut_format_1=(a / log(2)), _coconut_format_2=(c / log(2)), _coconut_format_3=((a + b + c) / log(2))))
+    print("{_coconut_format_0} = exp({_coconut_format_1} ((d - 1)(d - {_coconut_format_2}) + {_coconut_format_3} d))".format(_coconut_format_0=(yname), _coconut_format_1=(a), _coconut_format_2=(c / a), _coconut_format_3=(1 + (b + c) / a)))
+    print("{_coconut_format_0} = 2**({_coconut_format_1} ((d - 1)(d - {_coconut_format_2}) + {_coconut_format_3} d))".format(_coconut_format_0=(yname), _coconut_format_1=(a / log(2)), _coconut_format_2=(c / a), _coconut_format_3=(1 + (b + c) / a)))
+
+
 if __name__ == "__main__":
     print("\nRunning baseline game...")
-    (pprint)(baseline_game.run())
+    baseline_env = baseline_game.run()
+    pprint(baseline_env)
 
-    for d in range(2, 5):
-        run_nonseq_game(d)
+    ds = range(1, 5)
+    nonseq_PCs = [baseline_env["PC"]] + [run_nonseq_game(d) for d in ds[1:]]
+    seq_PCs = [baseline_env["PC"]] + [run_seq_game(d) for d in ds[1:]]
 
-    for d in range(2, 5):
-        run_seq_game(d)
+    eps, m = common_params["eps"], common_params["m"]
+    nonseq_logys = [log(PC / eps**d) for d, PC in zip(ds, nonseq_PCs)]
+    seq_logys = [log(PC / (eps**d / m**(d - 1))) for d, PC in zip(ds, seq_PCs)]
+
+    print_logregress(ds, nonseq_logys, yname="PC_nonseq / eps**d")
+    print_logregress(ds, seq_logys, yname="PC_seq / (eps**d / m**(d-1))")
+
+# fig, axs = plt.subplots(2, 2)
+
+# axs[0, 0].set(ylabel="non-sequential log P(C)", xlabel="required defections")
+# axs[0, 0].plot(ds, list <| map(log, nonseq_PCs))
+
+# axs[1, 0].set(ylabel="sequential log P(C)", xlabel="required defections")
+# axs[1, 0].plot(ds, list <| map(log, seq_PCs))
+
+# axs[0, 1].set(ylabel="non-sequential log(P(C)/eps**d)", xlabel="required defections")
+# axs[0, 1].plot(ds, nonseq_logys)
+
+# axs[1, 1].set(ylabel="sequential log(P(c)/(eps**d/m**(d-1)))", xlabel="required defections")
+# axs[1, 1].plot(ds, seq_logys)
+
+# plt.show()
 
 # print("\nRunning test game...")
 # test_game.run() |> pprint
