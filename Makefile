@@ -1,16 +1,20 @@
+.PHONY: clean-docs
+clean-docs: clean docs
+
 .PHONY: all
 all: clean docs run
 
 .PHONY: test
 test: clean install run
 
-.PHONY: run
-run:
-	python ./iternash/examples/absent_minded_driver.py
+.PHONY: setup
+setup:
+	pip install -U setuptools pip coconut-develop[watch]
 
-.PHONY: docs
-docs: dev
-	pdoc ./iternash -o ./docs --force
+.PHONY: build
+build:
+	coconut setup.coco --no-tco --strict
+	coconut iternash-source iternash --no-tco --strict --jobs sys
 
 .PHONY: dev
 dev: build
@@ -20,20 +24,13 @@ dev: build
 install: build
 	pip install -Ue .[examples]
 
-.PHONY: build
-build:
-	coconut setup.coco --no-tco --strict
-	coconut iternash-source iternash --no-tco --strict --jobs sys
+.PHONY: docs
+docs: dev
+	pdoc ./iternash -o ./docs --force
 
-.PHONY: setup
-setup:
-	pip install -U setuptools pip coconut-develop[watch]
-
-.PHONY: upload
-upload: wipe docs
-	python3 setup.py sdist bdist_wheel
-	pip3 install -U --ignore-installed twine
-	twine upload dist/*
+.PHONY: run
+run:
+	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: clean
 clean:
@@ -46,6 +43,12 @@ clean:
 .PHONY: wipe
 wipe: clean
 	rm -rf ./iternash ./setup.py ./docs
+
+.PHONY: upload
+upload: wipe docs
+	python3 setup.py sdist bdist_wheel
+	pip3 install -U --ignore-installed twine
+	twine upload dist/*
 
 .PHONY: watch
 watch: install

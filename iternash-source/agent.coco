@@ -3,7 +3,7 @@ from pprint import pprint
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
-from iternash.util import Str, printret
+from iternash.util import Str, printret, printerr
 
 
 no_default = object()
@@ -36,7 +36,7 @@ class Agent:
                 print(f"{self}({env}) = {result}")
             return result
         except:
-            print(f"Error calculating action for {self}({env}):")
+            printerr(f"Error calculating action for {self}({env}):")
             raise
 
     def __repr__(self) =
@@ -75,8 +75,8 @@ def agent(name_or_agent_func=None, **kwargs):
     """
     if name_or_agent_func is None:
         return agent$(**kwargs)
-    elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
-        return Agent$(name, **kwargs)
+    elif isinstance(name_or_agent_func, Str):
+        return Agent$(name_or_agent_func, **kwargs)
     elif "name" in kwargs:
         return Agent(kwargs.pop("name"), name_or_agent_func, **kwargs)
     else:

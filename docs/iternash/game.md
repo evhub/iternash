@@ -12,7 +12,7 @@ Classes
     - _agents_ are agents to include in the environment. (name, agent) tuples
         are also allowed.
     - _named_agents_ are names mapped to agents to give those names to in the
-        env. _named_agents come after agents in an arbitrary order.
+        env. _named_agents_ come after _agents_ in an arbitrary order.
     - _independent_update_ controls whether agents are evaluated independently
         or sequentially (defaults to False, i.e. sequentially). When the updates
         are sequential the order of agents passed to Game will be the order in
@@ -37,7 +37,7 @@ Classes
     :   Add an agent to be called at interval _period_.
 
     `finalize(self, ensure_all_agents_run=True)`
-    :   Gather final parameters, running every agent again in _ensure_all_agents_run_.
+    :   Gather final parameters, running every agent again if _ensure_all_agents_run_.
 
     `get_clean_env(self)`
     :   Get a copy of the environment without the game.

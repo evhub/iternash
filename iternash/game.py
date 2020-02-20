@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8b3b2e6e
+# __coconut_hash__ = 0xb9cb6631
 
 # Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
 
@@ -35,7 +35,7 @@ class Game(_coconut.object):
     - _agents_ are agents to include in the environment. (name, agent) tuples
         are also allowed.
     - _named_agents_ are names mapped to agents to give those names to in the
-        env. _named_agents come after agents in an arbitrary order.
+        env. _named_agents_ come after _agents_ in an arbitrary order.
     - _independent_update_ controls whether agents are evaluated independently
         or sequentially (defaults to False, i.e. sequentially). When the updates
         are sequential the order of agents passed to Game will be the order in
@@ -151,7 +151,7 @@ class Game(_coconut.object):
         return self.finalize(ensure_all_agents_run=ensure_all_agents_run)
 
     def finalize(self, ensure_all_agents_run=True):
-        """Gather final parameters, running every agent again in _ensure_all_agents_run_."""
+        """Gather final parameters, running every agent again if _ensure_all_agents_run_."""
         self.final_step = True
         try:
             if ensure_all_agents_run:

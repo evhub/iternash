@@ -12,6 +12,11 @@ def printret(obj) =
     obj
 
 
+def printerr(*args):
+    """Print to standard error."""
+    print(*args, file=sys.stderr)
+
+
 def clip(x, m=sys.float_info.epsilon, M=1-sys.float_info.epsilon):
     """Clip x into [m, M] (defaults to [eps, 1-eps])."""
     if m is not None and x <= m:

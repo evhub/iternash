@@ -9,6 +9,10 @@ Functions
 :   Clip x into [m, M] (defaults to [eps, 1-eps]).
 
     
+`printerr(*args)`
+:   Print to standard error.
+
+    
 `printret(obj)`
 :   Print then return _obj_.
 

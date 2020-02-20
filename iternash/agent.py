@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xab02ee80
+# __coconut_hash__ = 0xc108a438
 
 # Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
 
@@ -27,6 +27,7 @@ from bbopt.constants import default_alg
 
 from iternash.util import Str
 from iternash.util import printret
+from iternash.util import printerr
 
 
 no_default = object()
@@ -59,7 +60,7 @@ class Agent(_coconut.object):
                 print("{_coconut_format_0}({_coconut_format_1}) = {_coconut_format_2}".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(result)))
             return result
         except:
-            print("Error calculating action for {_coconut_format_0}({_coconut_format_1}):".format(_coconut_format_0=(self), _coconut_format_1=(env)))
+            printerr("Error calculating action for {_coconut_format_0}({_coconut_format_1}):".format(_coconut_format_0=(self), _coconut_format_1=(env)))
             raise
 
     def __repr__(self):
@@ -98,8 +99,8 @@ def agent(name_or_agent_func=None, **kwargs):
     """
     if name_or_agent_func is None:
         return _coconut.functools.partial(agent, **kwargs)
-    elif isinstance(name_or_agent_func, Str) or name_or_agent_func is None:
-        return _coconut.functools.partial(Agent, name, **kwargs)
+    elif isinstance(name_or_agent_func, Str):
+        return _coconut.functools.partial(Agent, name_or_agent_func, **kwargs)
     elif "name" in kwargs:
         return Agent(kwargs.pop("name"), name_or_agent_func, **kwargs)
     else:
