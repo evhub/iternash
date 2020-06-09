@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa97687e8
+# __coconut_hash__ = 0xa33229bf
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -44,25 +44,27 @@ class Agent(_coconut.object):
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _extra_defaults_ are extra variables that need to be given defaults.
     - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
     """
 
-    def __init__(self, name, actor, default=no_default, period=1, copy_func=None, debug=False):
+    def __init__(self, name, actor, default=no_default, period=1, extra_defaults={}, copy_func=None, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
         self.period = period
+        self.extra_defaults = extra_defaults
         self.copy_func = copy_func
         self.debug = debug
 
-    def clone(self, name=None, actor=None, default=_sentinel, period=None, copy_func=_sentinel, debug=None):
+    def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _sentinel:
             default = self.default
         if copy_func is _sentinel:
             copy_func = self.copy_func
-        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period), copy_func, (self.debug if debug is None else debug))
+        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_none_coalesce_item: self.extra_defaults if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(extra_defaults), copy_func, (self.debug if debug is None else debug))
 
     def __call__(self, env):
         """Call the agent's actor function."""
@@ -201,17 +203,18 @@ def init_agent(name, constant):
     return Agent(name, lambda env: constant, default=constant, period=float("inf"))
 
 
-def hist_agent(name, maxhist=None, initializer=(), **kwargs):
-    """Construct an agent that records a history of the given name.
+def hist_agent(hist_name, var_name, maxhist=None, initializer=(), **kwargs):
+    """Construct an agent that records a history.
 
     Parameters:
+    - _hist_name_ is the name of this agent.
+    - _var_name_ is the name of the agent to record.
     - _maxhist_ is the maximum history to store.
     - _initializer_ is an iterable to fill the initial history with.
     - _kwargs_ are passed to Agent.
     """
-    hist_name = name + "_hist"
     def hist_actor(env):
-        env[hist_name].append(env[name])
+        env[hist_name].append(env[var_name])
         return env[hist_name]
     init_hist = [] if maxhist is None else deque(maxlen=maxhist)
     for x in initializer:

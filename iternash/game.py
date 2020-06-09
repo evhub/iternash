@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5af20338
+# __coconut_hash__ = 0xade1f652
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -83,6 +83,8 @@ class Game(_coconut.object):
         self.add_agents(*agents, **named_agents)
         self.env = {"game": self}
         for a in self.agents:
+            for k, v in a.extra_defaults.items():
+                self.env[k] = v
             if a.has_default() and a.name is not None:
                 self.env[a.name] = a.default
         self.i = 0

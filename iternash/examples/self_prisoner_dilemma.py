@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x551d3ef
+# __coconut_hash__ = 0x27a976e6
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -41,7 +41,7 @@ def coop_with_prob(p):
 common_params = dict(INIT_C_PROB=1, PD_PAYOFFS=[[2, 3], [-1, 0],])
 
 
-a_hist_record = hist_agent("a", maxhist=1)
+a_hist_1step = hist_agent("a_hist", "a", maxhist=1)
 
 
 @agent(name="r")
@@ -57,7 +57,7 @@ def self_pd_reward(env):
 # = POLICY GRADIENT GAME =
 
 pol_grad_params = common_params.copy()
-pol_grad_params.update(POL_GRAD_LR=0.001, POL_GRAD_CLIP_EPS=0.01)
+pol_grad_params.update(THETA_LR=0.001, CLIP_EPS=0.01)
 
 
 @agent(name="a")
@@ -67,9 +67,8 @@ def pol_grad_act(env):
 
 @agent(name="theta", default=np.random.random())
 def pol_grad_update(env):
-    lr = env["POL_GRAD_LR"]
-    eps = env["POL_GRAD_CLIP_EPS"]
-
+    lr = env["THETA_LR"]
+    eps = env["CLIP_EPS"]
     th = env["theta"]
 # grad[th] E[r(a) | a~pi[th]]
 # = sum[a] grad[th] p(a|pi[th]) r(a)
@@ -91,18 +90,18 @@ def pol_grad_update(env):
     return np.clip(th, eps, 1 - eps)
 
 
-pol_grad_game = Game("pol_grad", pol_grad_act, self_pd_reward, pol_grad_update, a_hist_record, **pol_grad_params)
+pol_grad_game = Game("pol_grad", pol_grad_act, self_pd_reward, pol_grad_update, a_hist_1step, **pol_grad_params)
 
 
 # = Q LEARNING GAME =
 
 q_params = common_params.copy()
-q_params.update(Q_EPS_GREEDY=0.2, q_sums=[0, 0], q_counts=[0, 0])
+q_params.update(EXPLORE_EPS=0.2, BOLTZ_TEMP=1, Q_LR=0.001)
 
 
 @agent(name="a")
 def q_eps_greedy_act(env):
-    eps = env["Q_EPS_GREEDY"]
+    eps = env["EXPLORE_EPS"]
     QC = env["qs"][C]
     QD = env["qs"][D]
     if QC == QD or np.random.random() <= eps:
@@ -111,7 +110,15 @@ def q_eps_greedy_act(env):
         return C if QC > QD else D
 
 
-@agent(name="qs", default=[0, 0])
+@agent(name="a")
+def q_boltz_act(env):
+    GUMB_C = env["BOLTZ_TEMP"]
+    qs = np.array(env["qs"], dtype=float)
+    zs = np.random.gumbel(size=qs.shape)
+    return np.argmax(qs + GUMB_C * zs)
+
+
+@agent(name="qs", default=[0, 0], extra_defaults=dict(q_sums=[0, 0], q_counts=[0, 0]))
 def q_true_avg_update(env):
     a = env["a"]
     env["q_sums"][a] += env["r"]
@@ -120,10 +127,25 @@ def q_true_avg_update(env):
     return env["qs"]
 
 
-q_eps_greedy_true_avg_game = Game("q_eps_greedy_true_avg", q_eps_greedy_act, self_pd_reward, q_true_avg_update, a_hist_record, **q_params)
+@agent(name="qs", default=[0, 0])
+def q_run_avg_update(env):
+    lr = env["Q_LR"]
+    a = env["a"]
+    env["qs"][a] = (1 - lr) * env["qs"][a] + lr * env["r"]
+    return env["qs"]
+
+
+q_eps_greedy_true_avg_game = Game("q_eps_greedy_true_avg", q_eps_greedy_act, self_pd_reward, q_true_avg_update, a_hist_1step, **q_params)
+
+
+q_boltz_run_avg_game = Game("q_boltz_run_avg", q_boltz_act, self_pd_reward, q_run_avg_update, a_hist_1step, **q_params)
 
 
 # = MAIN =
 
 if __name__ == "__main__":
-    q_eps_greedy_true_avg_game.add_agents(debug_all_agent(period=100)).run(1000)
+    pol_grad_game.add_agents(debug_all_agent(period=100)).run(10000)
+
+    q_eps_greedy_true_avg_game.add_agents(debug_all_agent(period=100)).run(10000)
+
+    q_boltz_run_avg_game.add_agents(debug_all_agent(period=100)).run(10000)
