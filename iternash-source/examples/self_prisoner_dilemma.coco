@@ -1,3 +1,5 @@
+from math import log
+
 from iternash import (
     Game,
     agent,
@@ -176,14 +178,15 @@ if __name__ == "__main__":
     # ).run(10000)
 
     g = q_eps_greedy_true_avg_game.add_agents(
-        hist_agent("qcs", env -> env["qs"][C]),
-        hist_agent("qds", env -> env["qs"][D]),
+        hist_agent("qc_hist", env -> env["qs"][C]),
+        hist_agent("qd_hist", env -> env["qs"][D]),
     )
     g.run(10000)
 
     fig, axs = plt.subplots(1)
-    g.plot(axs, None, "qcs")
-    g.plot(axs, None, "qds")
-    axs.set(ylabel="qs")
+    log_xs = range(1, len(g.env["qc_hist"]) + 1) |> map$(log) |> list
+    g.plot(axs, log_xs, "qc_hist")
+    g.plot(axs, log_xs, "qd_hist")
+    axs.set(xlabel="log(t)", ylabel="qs")
     axs.legend()
-    # plt.show()
+    plt.show()

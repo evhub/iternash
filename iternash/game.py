@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8eb1330b
+# __coconut_hash__ = 0xd5069a18
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -188,26 +188,37 @@ class Game(_coconut.object):
     def plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, **kwargs):
         """Plot _xs_ vs. _ys_ on the given axis with automatic or custom
         label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
-        be None to replace with a sequence."""
+        be None to replace with a sequence and must otherwise be either
+        a variable name or a list."""
         if xs is None and ys is None:
             raise ValueError("both of xs and ys cannot be None")
-        elif xs is None:
-            ys_list = (list)(self.env[ys])
-            xs_list = range(len(ys_list))
-        elif ys is None:
-            xs_list = (list)(self.env[xs])
-            ys_list = range(len(xs_list))
+        if isinstance(xs, Str):
+            xs_list = self.env[xs]
         else:
-            xs_list = (list)(self.env[xs])
-            ys_list = (list)(self.env[ys])
+            xs_list = xs
+        if isinstance(ys, Str):
+            ys_list = self.env[ys]
+        else:
+            ys_list = ys
+        if xs_list is not None:
+            xs_list = list(xs_list)
+        if ys_list is not None:
+            ys_list = list(ys_list)
+        xs_list = range(len(ys_list)) if xs_list is None else xs_list
+        ys_list = range(len(xs_list)) if ys_list is None else ys_list
+
         set_kwargs = {}
         xlabel = xs if xlabel is None else xlabel
-        if xlabel is not None:
+        if isinstance(xlabel, Str):
             set_kwargs["xlabel"] = xlabel
         ylabel = ys if ylabel is None else ylabel
-        if ylabel is not None:
+        if isinstance(ylabel, Str):
             set_kwargs["ylabel"] = ylabel
-        ax.set(**set_kwargs)
+        if set_kwargs:
+            ax.set(**set_kwargs)
+
         label = (xs if ys is None else ys) if label is None else label
-        ax.plot(xs_list, ys_list, label=label, **kwargs)
+        if isinstance(label, Str):
+            kwargs["label"] = label
+        ax.plot(xs_list, ys_list, **kwargs)
         return ax

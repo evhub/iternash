@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x95f1f33f
+# __coconut_hash__ = 0xa69669a3
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -19,6 +19,8 @@ if _coconut_sys.version_info >= (3,):
     _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
+
+from math import log
 
 from iternash import Game
 from iternash import agent
@@ -158,12 +160,13 @@ if __name__ == "__main__":
 #     debug_all_agent(period=100)
 # ).run(10000)
 
-    g = q_eps_greedy_true_avg_game.add_agents(hist_agent("qcs", lambda env: env["qs"][C]), hist_agent("qds", lambda env: env["qs"][D]))
+    g = q_eps_greedy_true_avg_game.add_agents(hist_agent("qc_hist", lambda env: env["qs"][C]), hist_agent("qd_hist", lambda env: env["qs"][D]))
     g.run(10000)
 
     fig, axs = plt.subplots(1)
-    g.plot(axs, None, "qcs")
-    g.plot(axs, None, "qds")
-    axs.set(ylabel="qs")
+    log_xs = (list)(map(log, range(1, len(g.env["qc_hist"]) + 1)))
+    g.plot(axs, log_xs, "qc_hist")
+    g.plot(axs, log_xs, "qd_hist")
+    axs.set(xlabel="log(t)", ylabel="qs")
     axs.legend()
-# plt.show()
+    plt.show()
