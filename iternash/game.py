@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x297f7973
+# __coconut_hash__ = 0x8eb1330b
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -73,17 +73,17 @@ class Game(_coconut.object):
         self.agents = []
         self.independent_update = independent_update
         self.default_run_kwargs = default_run_kwargs
-        self.reset(name)
-        self.add_agents(*agents, **named_agents)
+        self.reset(name, *agents, **named_agents)
 
-    def reset(self, name=None):
+    def reset(self, name=None, *agents, **named_agents):
         """Set all default values and start the step counter. If you want to run
         multiple trials with the same game you must explicitly call reset and if
         you are using bbopt agents you must pass a new _name_."""
         self.name = (self.name if name is None else name)
         self.env = {"game": self}
-        self.set_defaults(self.agents)
         self.i = 0
+        self.set_defaults(self.agents)
+        self.add_agents(*agents, **named_agents)
         return self
 
     def set_defaults(self, agents):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbe127cfd
+# __coconut_hash__ = 0x95f1f33f
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -166,4 +166,4 @@ if __name__ == "__main__":
     g.plot(axs, None, "qds")
     axs.set(ylabel="qs")
     axs.legend()
-    plt.show()
+# plt.show()

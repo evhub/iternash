@@ -93,7 +93,7 @@ Functions
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x000001B239201C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
+`Agent(name, actor, default=<object object at 0x000001FC89F21C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -108,7 +108,7 @@ Classes
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x000001B239201CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x000001B239201CA0>, debug=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x000001FC89F21CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x000001FC89F21CA0>, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `has_default(self)`

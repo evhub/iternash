@@ -55,7 +55,7 @@ Classes
         label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
         be None to replace with a sequence.
 
-    `reset(self, name=None)`
+    `reset(self, name=None, *agents, **named_agents)`
     :   Set all default values and start the step counter. If you want to run
         multiple trials with the same game you must explicitly call reset and if
         you are using bbopt agents you must pass a new _name_.

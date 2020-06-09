@@ -186,4 +186,4 @@ if __name__ == "__main__":
     g.plot(axs, None, "qds")
     axs.set(ylabel="qs")
     axs.legend()
-    plt.show()
+    # plt.show()
