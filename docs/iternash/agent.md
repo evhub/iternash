@@ -50,11 +50,11 @@ Functions
         Agent(None, env -> print("x = {x}".format(**env)))
 
     
-`debug_all_agent(**kwargs)`
-:   Construct an agent that prints the entire env.
+`debug_all_agent(pretty=True, **kwargs)`
+:   Construct an agent that prints the entire env, prettily if _pretty_.
 
     
-`expr_agent(name, expr, vars={}, aliases={'\n': '', '^': '**'}, eval=<built-in function eval>, **kwargs)`
+`expr_agent(name, expr, vars={}, aliases={'\n': ''}, eval=<built-in function eval>, **kwargs)`
 :   Construct an agent that computes its action by evaluating an expression.
     
     Parameters:
@@ -69,17 +69,29 @@ Functions
     - _kwargs_ are passed to `Agent`.
 
     
-`human_agent(name, vars={}, aliases={'\n': '', '^': '**'}, **kwargs)`
-:   Construct an agent that prompts a human for an expression as in expr_agent.
+`hist_agent(name, maxhist=None, initializer=(), **kwargs)`
+:   Construct an agent that records a history of the given name.
+    
+    Parameters:
+    - _maxhist_ is the maximum history to store.
+    - _initializer_ is an iterable to fill the initial history with.
+    - _kwargs_ are passed to Agent.
 
     
-`initializer_agent(name, constant)`
+`human_agent(name, pprint=True, vars={}, aliases={'\n': ''}, eval=<built-in function eval>, **kwargs)`
+:   Construct an agent that prompts a human for an expression as in expr_agent.
+    
+    Parameters are as per expr_agent plus _pprint_ which determines whether to
+    pretty print the environment for the human.
+
+    
+`init_agent(name, constant)`
 :   Construct an agent that just initializes name to the given constant.
 
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x000001C233BE6C10>, period=1, debug=False)`
+`Agent(name, actor, default=<object object at 0x0000029132AA1C90>, period=1, copy_func=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -88,11 +100,12 @@ Classes
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x000001C233BE6C20>, period=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x0000029132AA1CA0>, period=None, copy_func=<object object at 0x0000029132AA1CA0>, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `has_default(self)`

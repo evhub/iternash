@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc108a438
+# __coconut_hash__ = 0xa97687e8
 
-# Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -21,6 +21,7 @@ if _coconut_sys.version_info >= (3,):
 # Compiled Coconut: -----------------------------------------------------------
 
 from pprint import pprint
+from collections import deque
 
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
@@ -28,10 +29,11 @@ from bbopt.constants import default_alg
 from iternash.util import Str
 from iternash.util import printret
 from iternash.util import printerr
+from iternash.util import clean_env
 
 
 no_default = object()
-_no_default_passed = object()
+_sentinel = object()
 
 class Agent(_coconut.object):
     """Agent class.
@@ -42,15 +44,25 @@ class Agent(_coconut.object):
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
     """
 
-    def __init__(self, name, actor, default=no_default, period=1, debug=False):
+    def __init__(self, name, actor, default=no_default, period=1, copy_func=None, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
         self.period = period
+        self.copy_func = copy_func
         self.debug = debug
+
+    def clone(self, name=None, actor=None, default=_sentinel, period=None, copy_func=_sentinel, debug=None):
+        """Create a copy of the agent (optionally) with new parameters."""
+        if default is _sentinel:
+            default = self.default
+        if copy_func is _sentinel:
+            copy_func = self.copy_func
+        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period), copy_func, (self.debug if debug is None else debug))
 
     def __call__(self, env):
         """Call the agent's actor function."""
@@ -69,12 +81,6 @@ class Agent(_coconut.object):
     def has_default(self):
         """Whether the agent has a default."""
         return self.default is not no_default
-
-    def clone(self, name=None, actor=None, default=_no_default_passed, period=None):
-        """Create a copy of the agent (optionally) with new parameters."""
-        if default is _no_default_passed:
-            default = self.default
-        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period))
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -107,9 +113,9 @@ def agent(name_or_agent_func=None, **kwargs):
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
-default_expr_aliases = {"\n": "", "^": "**"}
+DEFAULT_EXPR_ALIASES = {"\n": ""}
 
-def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **kwargs):
+def expr_agent(name, expr, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
@@ -128,11 +134,16 @@ def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **k
     return Agent(name, _coconut.functools.partial(eval, expr, vars), **kwargs)
 
 
-def human_agent(name, vars={}, aliases=default_expr_aliases, **kwargs):
-    """Construct an agent that prompts a human for an expression as in expr_agent."""
+def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
+    """Construct an agent that prompts a human for an expression as in expr_agent.
+
+    Parameters are as per expr_agent plus _pprint_ which determines whether to
+    pretty print the environment for the human."""
     def human_actor(env):
-        pprint(env.get_clean_env())
-        return eval(input("{_coconut_format_0} = ".format(_coconut_format_0=(name))), vars, env)
+        if pprint:
+            pprint(clean_env(env))
+        expr = input("{_coconut_format_0} = ".format(_coconut_format_0=(name)))
+        return expr_agent(expr, vars, aliases, eval)(env)
     return Agent(name, human_actor, **kwargs)
 
 
@@ -179,11 +190,30 @@ def debug_agent(debug_str, name=None, **kwargs):
     return Agent(name, lambda env: (printret)(debug_str.format(**env)), **kwargs)
 
 
-def debug_all_agent(**kwargs):
-    """Construct an agent that prints the entire env."""
-    return debug_agent("{game.env}", **kwargs)
+def debug_all_agent(pretty=True, **kwargs):
+    """Construct an agent that prints the entire env, prettily if _pretty_."""
+    print_func = pprint if pretty else print
+    return Agent(None, lambda env: print_func(clean_env(env)), **kwargs)
 
 
-def initializer_agent(name, constant):
+def init_agent(name, constant):
     """Construct an agent that just initializes name to the given constant."""
     return Agent(name, lambda env: constant, default=constant, period=float("inf"))
+
+
+def hist_agent(name, maxhist=None, initializer=(), **kwargs):
+    """Construct an agent that records a history of the given name.
+
+    Parameters:
+    - _maxhist_ is the maximum history to store.
+    - _initializer_ is an iterable to fill the initial history with.
+    - _kwargs_ are passed to Agent.
+    """
+    hist_name = name + "_hist"
+    def hist_actor(env):
+        env[hist_name].append(env[name])
+        return env[hist_name]
+    init_hist = [] if maxhist is None else deque(maxlen=maxhist)
+    for x in initializer:
+        init_hist.append(x)
+    return Agent(hist_name, hist_actor, default=init_hist, **kwargs)

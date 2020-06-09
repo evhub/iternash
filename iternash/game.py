@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb9cb6631
+# __coconut_hash__ = 0x5af20338
 
-# Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -23,8 +23,9 @@ if _coconut_sys.version_info >= (3,):
 from tqdm import tqdm
 
 from iternash.util import Str
+from iternash.util import clean_env
 from iternash.agent import Agent
-from iternash.agent import initializer_agent
+from iternash.agent import init_agent
 
 
 class Game(_coconut.object):
@@ -40,6 +41,7 @@ class Game(_coconut.object):
         or sequentially (defaults to False, i.e. sequentially). When the updates
         are sequential the order of agents passed to Game will be the order in
         which they are evaluated at each step.
+    - _default_run_kwargs_ are keyword arguments to use as the defaults in run.
     """
     final_step = False
 
@@ -52,25 +54,25 @@ class Game(_coconut.object):
             _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("name")
             agents = _coconut_match_to_args[2:]
             _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("independent_update") if "independent_update" in _coconut_match_to_kwargs else False
-            _coconut_match_temp_3 = _coconut_match_to_kwargs.pop("default_run_steps") if "default_run_steps" in _coconut_match_to_kwargs else 1000
+            _coconut_match_temp_3 = _coconut_match_to_kwargs.pop("default_run_kwargs") if "default_run_kwargs" in _coconut_match_to_kwargs else {}
             if _coconut.isinstance(_coconut_match_temp_1, Str):
                 self = _coconut_match_temp_0
                 name = _coconut_match_temp_1
                 independent_update = _coconut_match_temp_2
-                default_run_steps = _coconut_match_temp_3
+                default_run_kwargs = _coconut_match_temp_3
                 named_agents = _coconut_match_to_kwargs
                 _coconut_match_check = True
         if not _coconut_match_check:
             _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, independent_update=False, default_run_steps=1000, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, independent_update=False, default_run_steps=1000, **named_agents):'
+            _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def __init__(self, name is Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+            _coconut_match_err.pattern = 'match def __init__(self, name is Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):'
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
         self.name = None
         self.agents = []
         self.independent_update = independent_update
-        self.default_run_steps = default_run_steps
+        self.default_run_kwargs = default_run_kwargs
         self.reset(name, *agents, **named_agents)
 
     def reset(self, name, *agents, **named_agents):
@@ -97,7 +99,7 @@ class Game(_coconut.object):
                 _coconut_match_check = True
             if _coconut_match_check:
                 if not callable(actor):
-                    a = initializer_agent(name, actor)
+                    a = init_agent(name, actor)
                 elif isinstance(actor, Agent):
                     a = actor.clone(name=name)
                 else:
@@ -127,24 +129,37 @@ class Game(_coconut.object):
             self.env.update(updating_env)
         self.i += 1
 
-    def get_clean_env(self):
+    def env_copy(self):
         """Get a copy of the environment without the game."""
-        clean_env = self.env.copy()
-        del clean_env["game"]
-        return clean_env
+        new_env = clean_env(self.env)
+        for a in self.agents:
+            if a.copy_func is not None:
+                new_env[a.name] = a.copy_func(new_env[a.name])
+        return new_env
 
     @property
     def max_period(self):
         return max((a.period for a in self.agents if a.period < float("inf")))
 
-    def run(self, max_steps=None, stop_at_equilibrium=True, ensure_all_agents_run=True):
+    def run(self, max_steps=None, **kwargs):
+        """Exactly base_run but includes default_run_kwargs."""
+        run_kwargs = self.default_run_kwargs.copy()
+        if max_steps is not None:
+            run_kwargs["max_steps"] = max_steps
+        run_kwargs.update(kwargs)
+        return self.base_run(**run_kwargs)
+
+    def base_run(self, max_steps=None, stop_at_equilibrium=False, ensure_all_agents_run=True):
         """Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_."""
-        prev_env = self.get_clean_env()
-        for _ in tqdm(range((lambda _coconut_none_coalesce_item: self.default_run_steps if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(max_steps))):
+        if max_steps is None and not stop_at_equilibrium:
+            raise ValueError("run needs either max_steps not None or stop_at_equilibrium True")
+        if stop_at_equilibrium:
+            prev_env = self.env_copy()
+        for _ in tqdm(range(max_steps)) if max_steps is not None else count():
             self.step()
             if stop_at_equilibrium and self.i % self.max_period == 0:
-                new_env = self.get_clean_env()
+                new_env = self.env_copy()
                 if new_env == prev_env:
                     break
                 prev_env = new_env
@@ -157,6 +172,6 @@ class Game(_coconut.object):
             if ensure_all_agents_run:
                 for _ in range(self.max_period):
                     self.step()
-            return self.get_clean_env()
+            return self.env_copy()
         finally:
             self.final_step = False

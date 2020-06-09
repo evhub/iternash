@@ -1,13 +1,14 @@
 from pprint import pprint
+from collections import deque
 
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
-from iternash.util import Str, printret, printerr
+from iternash.util import Str, printret, printerr, clean_env
 
 
 no_default = object()
-_no_default_passed = object()
+_sentinel = object()
 
 class Agent:
     """Agent class.
@@ -18,15 +19,25 @@ class Agent:
     - _actor_ is a function from the environment to the agent's action.
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
+    - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
     """
 
-    def __init__(self, name, actor, default=no_default, period=1, debug=False):
+    def __init__(self, name, actor, default=no_default, period=1, copy_func=None, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
         self.period = period
+        self.copy_func = copy_func
         self.debug = debug
+
+    def clone(self, name=None, actor=None, default=_sentinel, period=None, copy_func=_sentinel, debug=None):
+        """Create a copy of the agent (optionally) with new parameters."""
+        if default is _sentinel:
+            default = self.default
+        if copy_func is _sentinel:
+            copy_func = self.copy_func
+        return Agent(name ?? self.name, actor ?? self.actor, default, period ?? self.period, copy_func, debug ?? self.debug)
 
     def __call__(self, env):
         """Call the agent's actor function."""
@@ -45,12 +56,6 @@ class Agent:
     def has_default(self) =
         """Whether the agent has a default."""
         self.default is not no_default
-
-    def clone(self, name=None, actor=None, default=_no_default_passed, period=None):
-        """Create a copy of the agent (optionally) with new parameters."""
-        if default is _no_default_passed:
-            default = self.default
-        return Agent(name ?? self.name, actor ?? self.actor, default, period ?? self.period)
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -83,12 +88,11 @@ def agent(name_or_agent_func=None, **kwargs):
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
-default_expr_aliases = {
+DEFAULT_EXPR_ALIASES = {
     "\n": "",
-    "^": "**",
 }
 
-def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **kwargs):
+def expr_agent(name, expr, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
@@ -107,11 +111,16 @@ def expr_agent(name, expr, vars={}, aliases=default_expr_aliases, eval=eval, **k
     return Agent(name, eval$(expr, vars), **kwargs)
 
 
-def human_agent(name, vars={}, aliases=default_expr_aliases, **kwargs):
-    """Construct an agent that prompts a human for an expression as in expr_agent."""
+def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
+    """Construct an agent that prompts a human for an expression as in expr_agent.
+
+    Parameters are as per expr_agent plus _pprint_ which determines whether to
+    pretty print the environment for the human."""
     def human_actor(env):
-        pprint(env.get_clean_env())
-        return eval(input(f"{name} = "), vars, env)
+        if pprint:
+            pprint(clean_env(env))
+        expr = input(f"{name} = ")
+        return expr_agent(expr, vars, aliases, eval)(env)
     return Agent(name, human_actor, **kwargs)
 
 
@@ -151,11 +160,30 @@ def debug_agent(debug_str, name=None, **kwargs) =
     Agent(name, env -> debug_str.format(**env) |> printret, **kwargs)
 
 
-def debug_all_agent(**kwargs) =
-    """Construct an agent that prints the entire env."""
-    debug_agent("{game.env}", **kwargs)
+def debug_all_agent(pretty=True, **kwargs) =
+    """Construct an agent that prints the entire env, prettily if _pretty_."""
+    print_func = pprint if pretty else print
+    Agent(None, env -> print_func(clean_env(env)), **kwargs)
 
 
-def initializer_agent(name, constant) =
+def init_agent(name, constant) =
     """Construct an agent that just initializes name to the given constant."""
     Agent(name, env -> constant, default=constant, period=float("inf"))
+
+
+def hist_agent(name, maxhist=None, initializer=(), **kwargs):
+    """Construct an agent that records a history of the given name.
+
+    Parameters:
+    - _maxhist_ is the maximum history to store.
+    - _initializer_ is an iterable to fill the initial history with.
+    - _kwargs_ are passed to Agent.
+    """
+    hist_name = name + "_hist"
+    def hist_actor(env):
+        env[hist_name].append(env[name])
+        return env[hist_name]
+    init_hist = [] if maxhist is None else deque(maxlen=maxhist)
+    for x in initializer:
+        init_hist.append(x)
+    return Agent(hist_name, hist_actor, default=init_hist, **kwargs)

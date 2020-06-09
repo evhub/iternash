@@ -17,6 +17,7 @@ Classes
         or sequentially (defaults to False, i.e. sequentially). When the updates
         are sequential the order of agents passed to Game will be the order in
         which they are evaluated at each step.
+    - _default_run_kwargs_ are keyword arguments to use as the defaults in run.
 
     ### Class variables
 
@@ -36,20 +37,23 @@ Classes
     `attach(self, agent, period, name=None)`
     :   Add an agent to be called at interval _period_.
 
+    `base_run(self, max_steps=None, stop_at_equilibrium=False, ensure_all_agents_run=True)`
+    :   Run iterative action selection for _max_steps_ or
+        until equilibrium is reached if _stop_at_equilibrium_.
+
+    `env_copy(self)`
+    :   Get a copy of the environment without the game.
+
     `finalize(self, ensure_all_agents_run=True)`
     :   Gather final parameters, running every agent again if _ensure_all_agents_run_.
-
-    `get_clean_env(self)`
-    :   Get a copy of the environment without the game.
 
     `reset(self, name, *agents, **named_agents)`
     :   Set all default values and start the step counter. If you want to call run
         multiple times on the same game you must explicitly call reset and if you are
         using bbopt agents you must pass a new _name_.
 
-    `run(self, max_steps=None, stop_at_equilibrium=True, ensure_all_agents_run=True)`
-    :   Run iterative action selection for _max_steps_ or
-        until equilibrium is reached if _stop_at_equilibrium_.
+    `run(self, max_steps=None, **kwargs)`
+    :   Exactly base_run but includes default_run_kwargs.
 
     `step(self)`
     :   Perform one full step of action selection.

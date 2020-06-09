@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x131c6110
+# __coconut_hash__ = 0x7dbcab7f
 
-# Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -26,6 +26,13 @@ sys = _coconut_sys
 
 
 Str = (str, bytes)
+
+
+def clean_env(env):
+    """Make a copy of env without game."""
+    new_env = env.copy()
+    del new_env["game"]
+    return new_env
 
 
 def printret(obj):

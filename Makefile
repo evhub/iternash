@@ -30,6 +30,7 @@ docs: dev
 
 .PHONY: run
 run:
+	python ./iternash/examples/myopia_unit_testing.py
 	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: clean

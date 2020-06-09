@@ -159,6 +159,10 @@ baseline_game = Game(
     baseline_p_agent,
     baseline_PC_agent,
     ER_agent,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=100,
+    ),
     **common_params,
 )
 
@@ -174,7 +178,10 @@ conservative_nonseq_d_game = Game(
     ER_agent,
     nonseq_d_PC_guess,
     periodic_debugger,
-    default_run_steps=500,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=500,
+    ),
     **common_params,
 )
 
@@ -190,7 +197,10 @@ conservative_seq_d_game = Game(
     ER_agent,
     seq_d_PC_guess,
     periodic_debugger,
-    default_run_steps=500,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=500,
+    ),
     **common_params,
 )
 
@@ -216,7 +226,10 @@ test_game = Game(
         new_env = env.copy();
         new_env["PC"] = env["seq_d_PC"];
         ER_agent(new_env)),
-    default_run_steps=100,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=100,
+    ),
     **common_params,
 )
 

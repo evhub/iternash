@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x536cdbbb
+# __coconut_hash__ = 0xab470b58
 
-# Compiled with Coconut version 1.4.3-post_dev11 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -117,19 +117,19 @@ periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period
 
 
 # absent-minded driver game where catastrophe occurs on the first defection
-baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC_agent, ER_agent, **common_params)
+baseline_game = Game("baseline", baseline_n_agent, baseline_p_agent, baseline_PC_agent, ER_agent, default_run_kwargs=dict(stop_at_equilibrium=True, max_steps=100), **common_params)
 
 
 # absent-minded driver game where catastrophe occurs upon the
 #  second defection during deployment with a conservative n
 #  and p approximated by BBopt
-conservative_nonseq_d_game = Game("conservative_nonseq_d", baseline_n_agent, bbopt_p_agent, nonseq_d_PC_agent, ER_agent, nonseq_d_PC_guess, periodic_debugger, default_run_steps=500, **common_params)
+conservative_nonseq_d_game = Game("conservative_nonseq_d", baseline_n_agent, bbopt_p_agent, nonseq_d_PC_agent, ER_agent, nonseq_d_PC_guess, periodic_debugger, default_run_kwargs=dict(stop_at_equilibrium=True, max_steps=500), **common_params)
 
 
 # absent-minded driver game where catastrophe occurs if there are ever
 #  d sequential defections during deployment with a conservative n
 #  and p approximated by BBopt
-conservative_seq_d_game = Game("conservative_seq_d", baseline_n_agent, bbopt_p_agent, seq_d_PC_agent, ER_agent, seq_d_PC_guess, periodic_debugger, default_run_steps=500, **common_params)
+conservative_seq_d_game = Game("conservative_seq_d", baseline_n_agent, bbopt_p_agent, seq_d_PC_agent, ER_agent, seq_d_PC_guess, periodic_debugger, default_run_kwargs=dict(stop_at_equilibrium=True, max_steps=500), **common_params)
 
 
 # game for testing the impact of different p values in the non-sequential
@@ -146,7 +146,7 @@ def _coconut_lambda_2(env):
     new_env = env.copy()
     new_env["PC"] = env["seq_d_PC"]
     return ER_agent(new_env)
-test_game = Game("test", baseline_n_agent, human_agent(name="p"), baseline_PC=baseline_PC_agent, baseline_ER=(_coconut_lambda_0), nonseq_d_PC=nonseq_d_PC_agent, nonseq_d_ER=(_coconut_lambda_1), seq_d_PC=seq_d_PC_agent, seq_d_ER=(_coconut_lambda_2), default_run_steps=100, **common_params)
+test_game = Game("test", baseline_n_agent, human_agent(name="p"), baseline_PC=baseline_PC_agent, baseline_ER=(_coconut_lambda_0), nonseq_d_PC=nonseq_d_PC_agent, nonseq_d_ER=(_coconut_lambda_1), seq_d_PC=seq_d_PC_agent, seq_d_ER=(_coconut_lambda_2), default_run_kwargs=dict(stop_at_equilibrium=True, max_steps=100), **common_params)
 
 
 def run_nonseq_game(d):

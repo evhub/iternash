@@ -1,0 +1,138 @@
+from iternash import (
+    Game,
+    agent,
+    hist_agent,
+    debug_all_agent,
+)
+
+import numpy as np
+
+
+# = GENERIC UTILS =
+
+C = 0
+D = 1
+
+
+def coop_with_prob(p) =
+    np.random.binomial(1, 1 - p)
+
+
+common_params = dict(
+    INIT_C_PROB=1,
+    PD_PAYOFFS=[
+        [2, 3],
+        [-1, 0],
+    ],
+)
+
+
+a_hist_record = hist_agent("a", maxhist=1)
+
+
+@agent(name="r")
+def self_pd_reward(env):
+    if env["a_hist"]:
+        a1 = env["a_hist"][-1]
+    else:
+        a1 = coop_with_prob(env["INIT_C_PROB"])
+    a2 = env["a"]
+    return env["PD_PAYOFFS"][a1][a2]
+
+
+# = POLICY GRADIENT GAME =
+
+pol_grad_params = common_params.copy()
+pol_grad_params.update(
+    POL_GRAD_LR=0.001,
+    POL_GRAD_CLIP_EPS=0.01,
+)
+
+
+@agent(name="a")
+def pol_grad_act(env):
+    return coop_with_prob(env["theta"])
+
+
+@agent(name="theta", default=np.random.random())
+def pol_grad_update(env):
+    lr = env["POL_GRAD_LR"]
+    eps = env["POL_GRAD_CLIP_EPS"]
+
+    th = env["theta"]
+    # grad[th] E[r(a) | a~pi[th]]
+    # = sum[a] grad[th] p(a|pi[th]) r(a)
+    # = sum[a] r(a) grad[th] p(a|pi[th])
+    # = sum[a] r(a) p(a|pi[th]) grad[th] log(p(a|pi[th]))
+    # = E[r(a) grad[th] log(p(a|pi[th]) | a~pi[th]]
+    if env["a"] == C:
+        # grad[th] log(p(C|pi[th]))
+        # = grad[th] log(th)
+        # = 1/th
+        th += lr * env["r"] * (1/th)
+    elif env["a"] == D:
+        # grad[th] log(p(D|pi[th])
+        # = grad[th] log(1 - th)
+        # = -1/(1 - th)
+        th += lr * env["r"] * (-1/(1 - th))
+    else:
+        raise ValueError(f"got invalid action {a}")
+    return np.clip(th, eps, 1-eps)
+
+
+pol_grad_game = Game(
+    "pol_grad",
+    pol_grad_act,
+    self_pd_reward,
+    pol_grad_update,
+    a_hist_record,
+    **pol_grad_params,
+)
+
+
+# = Q LEARNING GAME =
+
+q_params = common_params.copy()
+q_params.update(
+    Q_EPS_GREEDY=0.2,
+    q_sums=[0, 0],
+    q_counts=[0, 0],
+)
+
+
+@agent(name="a")
+def q_eps_greedy_act(env):
+    eps = env["Q_EPS_GREEDY"]
+    QC = env["qs"][C]
+    QD = env["qs"][D]
+    if QC == QD or np.random.random() <= eps:
+        return coop_with_prob(0.5)
+    else:
+        return C if QC > QD else D
+
+
+@agent(name="qs", default=[0, 0])
+def q_true_avg_update(env):
+    a = env["a"]
+    env["q_sums"][a] += env["r"]
+    env["q_counts"][a] += 1
+    env["qs"][a] = env["q_sums"][a]/env["q_counts"][a]
+    return env["qs"]
+
+
+q_eps_greedy_true_avg_game = Game(
+    "q_eps_greedy_true_avg",
+    q_eps_greedy_act,
+    self_pd_reward,
+    q_true_avg_update,
+    a_hist_record,
+    **q_params,
+)
+
+
+# = MAIN =
+
+if __name__ == "__main__":
+    q_eps_greedy_true_avg_game.add_agents(
+        debug_all_agent(period=100)
+    ).run(1000)
