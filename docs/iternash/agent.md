@@ -69,12 +69,12 @@ Functions
     - _kwargs_ are passed to `Agent`.
 
     
-`hist_agent(hist_name, var_name, maxhist=None, initializer=(), **kwargs)`
+`hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs)`
 :   Construct an agent that records a history.
     
     Parameters:
-    - _hist_name_ is the name of this agent.
-    - _var_name_ is the name of the agent to record.
+    - _name_ is the name of this agent.
+    - _record_var_ is the name of the agent to record or a function of env to get the value to record.
     - _maxhist_ is the maximum history to store.
     - _initializer_ is an iterable to fill the initial history with.
     - _kwargs_ are passed to Agent.
@@ -93,7 +93,7 @@ Functions
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x0000020D0C5D0C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
+`Agent(name, actor, default=<object object at 0x000001B239201C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -108,7 +108,7 @@ Classes
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x0000020D0C5D0CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x0000020D0C5D0CA0>, debug=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x000001B239201CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x000001B239201CA0>, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `has_default(self)`

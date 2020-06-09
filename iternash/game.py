@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xade1f652
+# __coconut_hash__ = 0x297f7973
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -44,6 +44,7 @@ class Game(_coconut.object):
     - _default_run_kwargs_ are keyword arguments to use as the defaults in run.
     """
     final_step = False
+    name = None
 
     @_coconut_mark_as_match
     def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
@@ -69,29 +70,33 @@ class Game(_coconut.object):
             _coconut_match_err.value = _coconut_match_to_args
             raise _coconut_match_err
 
-        self.name = None
         self.agents = []
         self.independent_update = independent_update
         self.default_run_kwargs = default_run_kwargs
-        self.reset(name, *agents, **named_agents)
-
-    def reset(self, name, *agents, **named_agents):
-        """Set all default values and start the step counter. If you want to call run
-        multiple times on the same game you must explicitly call reset and if you are
-        using bbopt agents you must pass a new _name_."""
-        self.name = (self.name if name is None else name)
+        self.reset(name)
         self.add_agents(*agents, **named_agents)
+
+    def reset(self, name=None):
+        """Set all default values and start the step counter. If you want to run
+        multiple trials with the same game you must explicitly call reset and if
+        you are using bbopt agents you must pass a new _name_."""
+        self.name = (self.name if name is None else name)
         self.env = {"game": self}
-        for a in self.agents:
+        self.set_defaults(self.agents)
+        self.i = 0
+        return self
+
+    def set_defaults(self, agents):
+        """Set the defaults for the given agents."""
+        for a in agents:
             for k, v in a.extra_defaults.items():
                 self.env[k] = v
             if a.has_default() and a.name is not None:
                 self.env[a.name] = a.default
-        self.i = 0
-        return self
 
     def add_agents(self, *agents, **named_agents):
         """Add the given agents/variables to the game."""
+        new_agents = []
         for a in _coconut.itertools.chain.from_iterable((_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to = a
             _coconut_match_check = False
@@ -107,7 +112,9 @@ class Game(_coconut.object):
                 else:
                     a = Agent(name, actor)
             assert isinstance(a, Agent), "not isinstance({_coconut_format_0}, Agent)".format(_coconut_format_0=(a))
-            self.agents.append(a)
+            new_agents.append(a)
+        self.agents += new_agents
+        self.set_defaults(new_agents)
         return self
 
     def attach(self, agent, period, name=None):
@@ -177,3 +184,30 @@ class Game(_coconut.object):
             return self.env_copy()
         finally:
             self.final_step = False
+
+    def plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, **kwargs):
+        """Plot _xs_ vs. _ys_ on the given axis with automatic or custom
+        label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
+        be None to replace with a sequence."""
+        if xs is None and ys is None:
+            raise ValueError("both of xs and ys cannot be None")
+        elif xs is None:
+            ys_list = (list)(self.env[ys])
+            xs_list = range(len(ys_list))
+        elif ys is None:
+            xs_list = (list)(self.env[xs])
+            ys_list = range(len(xs_list))
+        else:
+            xs_list = (list)(self.env[xs])
+            ys_list = (list)(self.env[ys])
+        set_kwargs = {}
+        xlabel = xs if xlabel is None else xlabel
+        if xlabel is not None:
+            set_kwargs["xlabel"] = xlabel
+        ylabel = ys if ylabel is None else ylabel
+        if ylabel is not None:
+            set_kwargs["ylabel"] = ylabel
+        ax.set(**set_kwargs)
+        label = (xs if ys is None else ys) if label is None else label
+        ax.plot(xs_list, ys_list, label=label, **kwargs)
+        return ax

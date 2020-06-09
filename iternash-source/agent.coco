@@ -181,20 +181,24 @@ def init_agent(name, constant) =
     Agent(name, env -> constant, default=constant, period=float("inf"))
 
 
-def hist_agent(hist_name, var_name, maxhist=None, initializer=(), **kwargs):
+def hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs):
     """Construct an agent that records a history.
 
     Parameters:
-    - _hist_name_ is the name of this agent.
-    - _var_name_ is the name of the agent to record.
+    - _name_ is the name of this agent.
+    - _record_var_ is the name of the agent to record or a function of env to get the value to record.
     - _maxhist_ is the maximum history to store.
     - _initializer_ is an iterable to fill the initial history with.
     - _kwargs_ are passed to Agent.
     """
     def hist_actor(env):
-        env[hist_name].append(env[var_name])
-        return env[hist_name]
+        if isinstance(record_var, Str):
+            got_val = env[record_var]
+        else:
+            got_val = record_var(env)
+        env[name].append(got_val)
+        return env[name]
     init_hist = [] if maxhist is None else deque(maxlen=maxhist)
     for x in initializer:
         init_hist.append(x)
-    return Agent(hist_name, hist_actor, default=init_hist, **kwargs)
+    return Agent(name, hist_actor, default=init_hist, **kwargs)

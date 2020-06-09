@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x27a976e6
+# __coconut_hash__ = 0xbe127cfd
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -26,6 +26,8 @@ from iternash import hist_agent
 from iternash import debug_all_agent
 
 import numpy as np
+
+from matplotlib import pyplot as plt
 
 
 # = GENERIC UTILS =
@@ -144,8 +146,24 @@ q_boltz_run_avg_game = Game("q_boltz_run_avg", q_boltz_act, self_pd_reward, q_ru
 # = MAIN =
 
 if __name__ == "__main__":
-    pol_grad_game.add_agents(debug_all_agent(period=100)).run(10000)
+# pol_grad_game.add_agents(
+#     debug_all_agent(period=100)
+# ).run(10000)
 
-    q_eps_greedy_true_avg_game.add_agents(debug_all_agent(period=100)).run(10000)
+# q_eps_greedy_true_avg_game.add_agents(
+#     debug_all_agent(period=100)
+# ).run(10000)
 
-    q_boltz_run_avg_game.add_agents(debug_all_agent(period=100)).run(10000)
+# q_boltz_run_avg_game.add_agents(
+#     debug_all_agent(period=100)
+# ).run(10000)
+
+    g = q_eps_greedy_true_avg_game.add_agents(hist_agent("qcs", lambda env: env["qs"][C]), hist_agent("qds", lambda env: env["qs"][D]))
+    g.run(10000)
+
+    fig, axs = plt.subplots(1)
+    g.plot(axs, None, "qcs")
+    g.plot(axs, None, "qds")
+    axs.set(ylabel="qs")
+    axs.legend()
+    plt.show()

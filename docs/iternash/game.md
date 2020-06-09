@@ -24,6 +24,9 @@ Classes
     `final_step`
     :
 
+    `name`
+    :
+
     ### Instance variables
 
     `max_period`
@@ -47,13 +50,21 @@ Classes
     `finalize(self, ensure_all_agents_run=True)`
     :   Gather final parameters, running every agent again if _ensure_all_agents_run_.
 
-    `reset(self, name, *agents, **named_agents)`
-    :   Set all default values and start the step counter. If you want to call run
-        multiple times on the same game you must explicitly call reset and if you are
-        using bbopt agents you must pass a new _name_.
+    `plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, **kwargs)`
+    :   Plot _xs_ vs. _ys_ on the given axis with automatic or custom
+        label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
+        be None to replace with a sequence.
+
+    `reset(self, name=None)`
+    :   Set all default values and start the step counter. If you want to run
+        multiple trials with the same game you must explicitly call reset and if
+        you are using bbopt agents you must pass a new _name_.
 
     `run(self, max_steps=None, **kwargs)`
     :   Exactly base_run but includes default_run_kwargs.
+
+    `set_defaults(self, agents)`
+    :   Set the defaults for the given agents.
 
     `step(self)`
     :   Perform one full step of action selection.

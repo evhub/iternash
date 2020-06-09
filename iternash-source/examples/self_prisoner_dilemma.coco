@@ -7,6 +7,8 @@ from iternash import (
 
 import numpy as np
 
+from matplotlib import pyplot as plt
+
 
 # = GENERIC UTILS =
 
@@ -161,14 +163,27 @@ q_boltz_run_avg_game = Game(
 # = MAIN =
 
 if __name__ == "__main__":
-    pol_grad_game.add_agents(
-        debug_all_agent(period=100)
-    ).run(10000)
+    # pol_grad_game.add_agents(
+    #     debug_all_agent(period=100)
+    # ).run(10000)
 
-    q_eps_greedy_true_avg_game.add_agents(
-        debug_all_agent(period=100)
-    ).run(10000)
+    # q_eps_greedy_true_avg_game.add_agents(
+    #     debug_all_agent(period=100)
+    # ).run(10000)
 
-    q_boltz_run_avg_game.add_agents(
-        debug_all_agent(period=100)
-    ).run(10000)
+    # q_boltz_run_avg_game.add_agents(
+    #     debug_all_agent(period=100)
+    # ).run(10000)
+
+    g = q_eps_greedy_true_avg_game.add_agents(
+        hist_agent("qcs", env -> env["qs"][C]),
+        hist_agent("qds", env -> env["qs"][D]),
+    )
+    g.run(10000)
+
+    fig, axs = plt.subplots(1)
+    g.plot(axs, None, "qcs")
+    g.plot(axs, None, "qds")
+    axs.set(ylabel="qs")
+    axs.legend()
+    plt.show()
