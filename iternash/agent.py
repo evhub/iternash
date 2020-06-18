@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe8a7c64c
+# __coconut_hash__ = 0xfbbfccde
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -22,6 +22,7 @@ if _coconut_sys.version_info >= (3,):
 
 from pprint import pprint
 from collections import deque
+from copy import deepcopy
 
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
@@ -61,28 +62,33 @@ class Agent(_coconut.object):
     def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _sentinel:
-            default = self.default
+            default = deepcopy(self.default)
         if copy_func is _sentinel:
-            copy_func = self.copy_func
-        return Agent((self.name if name is None else name), (self.actor if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_none_coalesce_item: self.extra_defaults if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(extra_defaults), copy_func, (self.debug if debug is None else debug))
+            copy_func = deepcopy(self.copy_func)
+        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_none_coalesce_item: deepcopy(self.extra_defaults) if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(extra_defaults), copy_func, (self.debug if debug is None else debug))
 
-    def __call__(self, env):
+    def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""
         try:
-            result = self.actor(env)
+            result = self.actor(env, *args, **kwargs)
             if self.debug:
-                print("{_coconut_format_0}({_coconut_format_1}) = {_coconut_format_2}".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(result)))
+                print("{_coconut_format_0}({_coconut_format_1}, *{_coconut_format_2}, **{_coconut_format_3}) = {_coconut_format_4}".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(args), _coconut_format_3=(kwargs), _coconut_format_4=(result)))
             return result
         except:
-            printerr("Error calculating action for {_coconut_format_0}({_coconut_format_1}):".format(_coconut_format_0=(self), _coconut_format_1=(env)))
+            printerr("Error calculating action for {_coconut_format_0}({_coconut_format_1}, *{_coconut_format_2}, **{_coconut_format_3}):".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(args), _coconut_format_3=(kwargs)))
             raise
 
     def __repr__(self):
         return "Agent({_coconut_format_0})".format(_coconut_format_0=(self.name))
 
-    def has_default(self):
-        """Whether the agent has a default."""
-        return self.default is not no_default
+    def get_defaults(self):
+        """Get a dictionary of all default values to assign."""
+        defaults = {}
+        if self.default is not no_default:
+            defaults[self.name] = deepcopy(self.default)
+        for name, val in self.extra_defaults.items():
+            defaults[name] = deepcopy(val)
+        return defaults
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -224,3 +230,14 @@ def hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs):
     for x in initializer:
         init_hist.append(x)
     return Agent(name, hist_actor, default=init_hist, **kwargs)
+
+
+def iterator_agent(name, iterable, extra_defaults={}, **kwargs):
+    """Construct an agent that successively produces values from the given
+    iterable. Extra arguments are passed to Agent."""
+    it_name = name + "_it"
+    extra_defaults[it_name] = iterable
+    def iterator_actor(env):
+        env[it_name] = (iter)(env[it_name])
+        return next(env[it_name])
+    return Agent(name, iterator_actor, extra_defaults=extra_defaults, **kwargs)

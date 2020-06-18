@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd5069a18
+# __coconut_hash__ = 0x9b26ebb2
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -19,6 +19,8 @@ if _coconut_sys.version_info >= (3,):
     _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
+
+from copy import deepcopy
 
 from tqdm import tqdm
 
@@ -89,10 +91,8 @@ class Game(_coconut.object):
     def set_defaults(self, agents):
         """Set the defaults for the given agents."""
         for a in agents:
-            for k, v in a.extra_defaults.items():
+            for k, v in a.get_defaults().items():
                 self.env[k] = v
-            if a.has_default() and a.name is not None:
-                self.env[a.name] = a.default
 
     def add_agents(self, *agents, **named_agents):
         """Add the given agents/variables to the game."""
@@ -116,6 +116,14 @@ class Game(_coconut.object):
         self.agents += new_agents
         self.set_defaults(new_agents)
         return self
+
+    def copy(self):
+        """Create a deep copy of the game."""
+        return deepcopy(self)
+
+    def copy_with_agents(self, *agents, **named_agents):
+        """Create a deep copy with new agents."""
+        return self.copy().add_agents(*agents, **named_agents)
 
     def attach(self, agent, period, name=None):
         """Add an agent to be called at interval _period_."""
@@ -158,14 +166,17 @@ class Game(_coconut.object):
         run_kwargs.update(kwargs)
         return self.base_run(**run_kwargs)
 
-    def base_run(self, max_steps=None, stop_at_equilibrium=False, ensure_all_agents_run=True):
+    def base_run(self, max_steps=None, stop_at_equilibrium=False, use_tqdm=True, ensure_all_agents_run=True):
         """Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_."""
         if max_steps is None and not stop_at_equilibrium:
             raise ValueError("run needs either max_steps not None or stop_at_equilibrium True")
         if stop_at_equilibrium:
             prev_env = self.env_copy()
-        for _ in tqdm(range(max_steps)) if max_steps is not None else count():
+        rng = range(max_steps)
+        if use_tqdm:
+            rng = (tqdm)(rng)
+        for _ in rng if max_steps is not None else count():
             self.step()
             if stop_at_equilibrium and self.i % self.max_period == 0:
                 new_env = self.env_copy()

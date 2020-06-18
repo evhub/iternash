@@ -25,5 +25,9 @@ Functions
 :   Get only the real part of x.
 
     
+`repeat(iterable)`
+:   Infinitely repeat the given iterable.
+
+    
 `safe_log(x)`
 :   Safe log allows calling log on floats that could be zero.

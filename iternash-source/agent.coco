@@ -1,5 +1,6 @@
 from pprint import pprint
 from collections import deque
+from copy import deepcopy
 
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
@@ -36,36 +37,41 @@ class Agent:
     def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is _sentinel:
-            default = self.default
+            default = deepcopy(self.default)
         if copy_func is _sentinel:
-            copy_func = self.copy_func
+            copy_func = deepcopy(self.copy_func)
         return Agent(
             name ?? self.name,
-            actor ?? self.actor,
+            actor ?? deepcopy(self.actor),
             default,
             period ?? self.period,
-            extra_defaults ?? self.extra_defaults,
+            extra_defaults ?? deepcopy(self.extra_defaults),
             copy_func,
             debug ?? self.debug,
         )
 
-    def __call__(self, env):
+    def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""
         try:
-            result = self.actor(env)
+            result = self.actor(env, *args, **kwargs)
             if self.debug:
-                print(f"{self}({env}) = {result}")
+                print(f"{self}({env}, *{args}, **{kwargs}) = {result}")
             return result
         except:
-            printerr(f"Error calculating action for {self}({env}):")
+            printerr(f"Error calculating action for {self}({env}, *{args}, **{kwargs}):")
             raise
 
     def __repr__(self) =
         f"Agent({self.name})"
 
-    def has_default(self) =
-        """Whether the agent has a default."""
-        self.default is not no_default
+    def get_defaults(self):
+        """Get a dictionary of all default values to assign."""
+        defaults = {}
+        if self.default is not no_default:
+            defaults[self.name] = deepcopy(self.default)
+        for name, val in self.extra_defaults.items():
+            defaults[name] = deepcopy(val)
+        return defaults
 
 
 def agent(name_or_agent_func=None, **kwargs):
@@ -202,3 +208,14 @@ def hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs):
     for x in initializer:
         init_hist.append(x)
     return Agent(name, hist_actor, default=init_hist, **kwargs)
+
+
+def iterator_agent(name, iterable, extra_defaults={}, **kwargs):
+    """Construct an agent that successively produces values from the given
+    iterable. Extra arguments are passed to Agent."""
+    it_name = name + "_it"
+    extra_defaults[it_name] = iterable
+    def iterator_actor(env):
+        env[it_name] |>= iter
+        return next(env[it_name])
+    return Agent(name, iterator_actor, extra_defaults=extra_defaults, **kwargs)

@@ -40,9 +40,15 @@ Classes
     `attach(self, agent, period, name=None)`
     :   Add an agent to be called at interval _period_.
 
-    `base_run(self, max_steps=None, stop_at_equilibrium=False, ensure_all_agents_run=True)`
+    `base_run(self, max_steps=None, stop_at_equilibrium=False, use_tqdm=True, ensure_all_agents_run=True)`
     :   Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_.
+
+    `copy(self)`
+    :   Create a deep copy of the game.
+
+    `copy_with_agents(self, *agents, **named_agents)`
+    :   Create a deep copy with new agents.
 
     `env_copy(self)`
     :   Get a copy of the environment without the game.

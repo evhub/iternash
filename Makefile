@@ -4,6 +4,12 @@ clean-docs: clean docs
 .PHONY: all
 all: clean docs run
 
+.PHONY: all-pd
+all-pd: clean docs run-pd
+
+.PHONY: all-driver
+all-driver: clean docs run-driver
+
 .PHONY: test
 test: clean install run
 
@@ -29,8 +35,14 @@ docs: dev
 	pdoc ./iternash -o ./docs --force
 
 .PHONY: run
-run:
+run: run-pd run-driver
+
+.PHONY: run-pd
+run-pd:
 	python ./iternash/examples/self_prisoner_dilemma.py
+
+.PHONY: run-driver
+run-driver:
 	python ./iternash/examples/absent_minded_driver.py
 
 .PHONY: clean

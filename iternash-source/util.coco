@@ -42,3 +42,9 @@ def safe_log(x) =
 def real(x) =
     """Get only the real part of x."""
     x.real if isinstance(x, complex) else x
+
+
+def repeat(iterable):
+    """Infinitely repeat the given iterable."""
+    while True:
+        yield from iterable

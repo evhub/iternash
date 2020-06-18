@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7dbcab7f
+# __coconut_hash__ = 0x59a09af2
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -64,3 +64,17 @@ def safe_log(x):
 def real(x):
     """Get only the real part of x."""
     return x.real if isinstance(x, complex) else x
+
+
+def repeat(iterable):
+    """Infinitely repeat the given iterable."""
+    while True:
+        _coconut_yield_from = _coconut.iter(iterable)
+        while True:
+            try:
+                yield _coconut.next(_coconut_yield_from)
+            except _coconut.StopIteration as _coconut_yield_err:
+                _coconut_yield_from_0 = _coconut_yield_err.args[0] if _coconut.len(_coconut_yield_err.args) > 0 else None
+                break
+
+        _coconut_yield_from_0
