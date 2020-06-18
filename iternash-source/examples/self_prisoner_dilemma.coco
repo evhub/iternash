@@ -30,20 +30,37 @@ common_params = dict(
         [2, 3],
         [-1, 0],
     ],
+    BUTTON_PAYOFFS=[
+        [1, 1],
+        [0, 0],
+    ],
 )
 
 
 a_hist_1step = hist_agent("a_hist", "a", maxhist=1)
 
 
-@agent(name="r")
-def self_pd_reward(env):
+def get_a1_a2(env):
     if env["a_hist"]:
         a1 = env["a_hist"][-1]
     else:
         a1 = coop_with_prob(env["INIT_C_PROB"])
-    a2 = env["a"]
+    return a1, env["a"]
+
+
+@agent(name="r")
+def self_pd_reward(env):
+    a1, a2 = get_a1_a2(env)
     return env["PD_PAYOFFS"][a1][a2]
+
+
+@agent(name="r")
+def button_reward(env):
+    a1, a2 = get_a1_a2(env)
+    return env["BUTTON_PAYOFFS"][a1][a2]
+
+
+GET_REWARD = self_pd_reward
 
 
 # = POLICY GRADIENT GAME =
@@ -104,7 +121,7 @@ def pol_grad_decoupled_update(env):
 pol_grad_game = Game(
     "pol_grad",
     pol_grad_act,
-    self_pd_reward,
+    GET_REWARD,
     pol_grad_update,
     a_hist_1step,
     **pol_grad_params,
@@ -114,7 +131,7 @@ pol_grad_game = Game(
 pol_grad_decoupled_game = Game(
     "pol_grad_decoupled",
     pol_grad_act,
-    self_pd_reward,
+    GET_REWARD,
     pol_grad_decoupled_update,
     a_hist_1step,
     **pol_grad_params,
@@ -229,7 +246,7 @@ ql_eps_greedy_true_avg_game = Game(
     "ql_eps_greedy_true_avg",
     eps_greedy_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_true_avg_update,
     a_hist_1step,
     **ql_params,
@@ -240,7 +257,7 @@ ql_eps_greedy_run_avg_game = Game(
     "ql_eps_greedy_run_avg",
     eps_greedy_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     **ql_params,
@@ -251,7 +268,7 @@ ql_boltz_run_avg_game = Game(
     "ql_boltz_run_avg",
     boltz_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     **ql_params,
@@ -262,7 +279,7 @@ ql_boltz_true_avg_game = Game(
     "ql_boltz_true_avg",
     boltz_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_true_avg_update,
     a_hist_1step,
     **ql_params,
@@ -273,7 +290,7 @@ ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game = Game(
     "ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction",
     eps_greedy_decay_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_decoupled_update,
     a_hist_1step,
     M_counter,
@@ -287,7 +304,7 @@ ql_eps_greedy_decay_run_avg_decoupled_game = Game(
     "ql_eps_greedy_decay_run_avg_decoupled",
     eps_greedy_decay_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_decoupled_update,
     a_hist_1step,
     M_counter,
@@ -299,7 +316,7 @@ ql_eps_greedy_decay_true_avg_game = Game(
     "ql_eps_greedy_decay_true_avg",
     eps_greedy_decay_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_true_avg_update,
     a_hist_1step,
     M_counter,
@@ -311,7 +328,7 @@ ql_eps_greedy_decay_run_avg_game = Game(
     "ql_eps_greedy_decay_run_avg",
     eps_greedy_decay_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -323,7 +340,7 @@ ql_eps_greedy_decay_run_avg_lr_decay_correction_game = Game(
     "ql_eps_greedy_decay_run_avg_lr_decay_correction",
     eps_greedy_decay_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -337,7 +354,7 @@ ql_eps_greedy_run_avg_lr_decay_correction_game = Game(
     "ql_eps_greedy_run_avg_lr_decay_correction",
     eps_greedy_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -351,7 +368,7 @@ ql_eps_greedy_run_avg_lr_decay_game = Game(
     "ql_eps_greedy_run_avg_lr_decay",
     eps_greedy_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -364,7 +381,7 @@ ql_eps_greedy_run_avg_lr_correction_game = Game(
     "ql_eps_greedy_run_avg_lr_correction",
     eps_greedy_pc,
     ql_pc_act,
-    self_pd_reward,
+    GET_REWARD,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -442,7 +459,7 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     return buckets
 
 
-def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
+match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
     """Plot cooperation proportions for all the given games."""
     experiments = {
         g.name: run_experiment(g, **kwargs) for g in games
@@ -467,9 +484,9 @@ if __name__ == "__main__":
     #     ql_boltz_true_avg_game,
     #     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
     #     ql_eps_greedy_decay_run_avg_decoupled_game,
-    #     ql_eps_greedy_decay_true_avg_game,
     #     ql_eps_greedy_decay_run_avg_game,
     #     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+    #     ql_eps_greedy_decay_true_avg_game,
     #     ql_eps_greedy_run_avg_lr_decay_correction_game,
     #     ql_eps_greedy_run_avg_lr_decay_game,
     #     ql_eps_greedy_run_avg_lr_correction_game,

@@ -9,7 +9,11 @@ Functions
 :   
 
     
-`plot_experiments(*games, linestyles=(':', '-.', '--', '-'), alpha=0.6, linewidth=2.25, **kwargs)`
+`get_a1_a2(env)`
+:   
+
+    
+`plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs)`
 :   Plot cooperation proportions for all the given games.
 
     

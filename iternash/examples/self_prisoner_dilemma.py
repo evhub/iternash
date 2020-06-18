@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x75994d61
+# __coconut_hash__ = 0xcd205da3
 
 # Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
 
@@ -46,20 +46,33 @@ def coop_with_prob(p):
     return np.random.binomial(1, 1 - p)
 
 
-common_params = dict(INIT_C_PROB=0.5, PD_PAYOFFS=[[2, 3], [-1, 0],])
+common_params = dict(INIT_C_PROB=0.5, PD_PAYOFFS=[[2, 3], [-1, 0],], BUTTON_PAYOFFS=[[1, 1], [0, 0],])
 
 
 a_hist_1step = hist_agent("a_hist", "a", maxhist=1)
 
 
-@agent(name="r")
-def self_pd_reward(env):
+def get_a1_a2(env):
     if env["a_hist"]:
         a1 = env["a_hist"][-1]
     else:
         a1 = coop_with_prob(env["INIT_C_PROB"])
-    a2 = env["a"]
+    return a1, env["a"]
+
+
+@agent(name="r")
+def self_pd_reward(env):
+    a1, a2 = get_a1_a2(env)
     return env["PD_PAYOFFS"][a1][a2]
+
+
+@agent(name="r")
+def button_reward(env):
+    a1, a2 = get_a1_a2(env)
+    return env["BUTTON_PAYOFFS"][a1][a2]
+
+
+GET_REWARD = self_pd_reward
 
 
 # = POLICY GRADIENT GAME =
@@ -114,10 +127,10 @@ def pol_grad_decoupled_update(env):
     return np.clip(th, eps, 1 - eps)
 
 
-pol_grad_game = Game("pol_grad", pol_grad_act, self_pd_reward, pol_grad_update, a_hist_1step, **pol_grad_params)
+pol_grad_game = Game("pol_grad", pol_grad_act, GET_REWARD, pol_grad_update, a_hist_1step, **pol_grad_params)
 
 
-pol_grad_decoupled_game = Game("pol_grad_decoupled", pol_grad_act, self_pd_reward, pol_grad_decoupled_update, a_hist_1step, **pol_grad_params)
+pol_grad_decoupled_game = Game("pol_grad_decoupled", pol_grad_act, GET_REWARD, pol_grad_decoupled_update, a_hist_1step, **pol_grad_params)
 
 
 # = Q LEARNING GAME =
@@ -217,40 +230,40 @@ def ql_decoupled_update(env):
     return env["qs"]
 
 
-ql_eps_greedy_true_avg_game = Game("ql_eps_greedy_true_avg", eps_greedy_pc, ql_pc_act, self_pd_reward, ql_true_avg_update, a_hist_1step, **ql_params)
+ql_eps_greedy_true_avg_game = Game("ql_eps_greedy_true_avg", eps_greedy_pc, ql_pc_act, GET_REWARD, ql_true_avg_update, a_hist_1step, **ql_params)
 
 
-ql_eps_greedy_run_avg_game = Game("ql_eps_greedy_run_avg", eps_greedy_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, **ql_params)
+ql_eps_greedy_run_avg_game = Game("ql_eps_greedy_run_avg", eps_greedy_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, **ql_params)
 
 
-ql_boltz_run_avg_game = Game("ql_boltz_run_avg", boltz_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, **ql_params)
+ql_boltz_run_avg_game = Game("ql_boltz_run_avg", boltz_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, **ql_params)
 
 
-ql_boltz_true_avg_game = Game("ql_boltz_true_avg", boltz_pc, ql_pc_act, self_pd_reward, ql_true_avg_update, a_hist_1step, **ql_params)
+ql_boltz_true_avg_game = Game("ql_boltz_true_avg", boltz_pc, ql_pc_act, GET_REWARD, ql_true_avg_update, a_hist_1step, **ql_params)
 
 
-ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game = Game("ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction", eps_greedy_decay_pc, ql_pc_act, self_pd_reward, ql_decoupled_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
+ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game = Game("ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction", eps_greedy_decay_pc, ql_pc_act, GET_REWARD, ql_decoupled_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
 
 
-ql_eps_greedy_decay_run_avg_decoupled_game = Game("ql_eps_greedy_decay_run_avg_decoupled", eps_greedy_decay_pc, ql_pc_act, self_pd_reward, ql_decoupled_update, a_hist_1step, M_counter, **ql_params)
+ql_eps_greedy_decay_run_avg_decoupled_game = Game("ql_eps_greedy_decay_run_avg_decoupled", eps_greedy_decay_pc, ql_pc_act, GET_REWARD, ql_decoupled_update, a_hist_1step, M_counter, **ql_params)
 
 
-ql_eps_greedy_decay_true_avg_game = Game("ql_eps_greedy_decay_true_avg", eps_greedy_decay_pc, ql_pc_act, self_pd_reward, ql_true_avg_update, a_hist_1step, M_counter, **ql_params)
+ql_eps_greedy_decay_true_avg_game = Game("ql_eps_greedy_decay_true_avg", eps_greedy_decay_pc, ql_pc_act, GET_REWARD, ql_true_avg_update, a_hist_1step, M_counter, **ql_params)
 
 
-ql_eps_greedy_decay_run_avg_game = Game("ql_eps_greedy_decay_run_avg", eps_greedy_decay_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, M_counter, **ql_params)
+ql_eps_greedy_decay_run_avg_game = Game("ql_eps_greedy_decay_run_avg", eps_greedy_decay_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, M_counter, **ql_params)
 
 
-ql_eps_greedy_decay_run_avg_lr_decay_correction_game = Game("ql_eps_greedy_decay_run_avg_lr_decay_correction", eps_greedy_decay_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
+ql_eps_greedy_decay_run_avg_lr_decay_correction_game = Game("ql_eps_greedy_decay_run_avg_lr_decay_correction", eps_greedy_decay_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
 
 
-ql_eps_greedy_run_avg_lr_decay_correction_game = Game("ql_eps_greedy_run_avg_lr_decay_correction", eps_greedy_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
+ql_eps_greedy_run_avg_lr_decay_correction_game = Game("ql_eps_greedy_run_avg_lr_decay_correction", eps_greedy_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, QL_LR_CORRECTION=True, **ql_params)
 
 
-ql_eps_greedy_run_avg_lr_decay_game = Game("ql_eps_greedy_run_avg_lr_decay", eps_greedy_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, **ql_params)
+ql_eps_greedy_run_avg_lr_decay_game = Game("ql_eps_greedy_run_avg_lr_decay", eps_greedy_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_DECAY=True, **ql_params)
 
 
-ql_eps_greedy_run_avg_lr_correction_game = Game("ql_eps_greedy_run_avg_lr_correction", eps_greedy_pc, ql_pc_act, self_pd_reward, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_CORRECTION=True, **ql_params)
+ql_eps_greedy_run_avg_lr_correction_game = Game("ql_eps_greedy_run_avg_lr_correction", eps_greedy_pc, ql_pc_act, GET_REWARD, ql_run_avg_update, a_hist_1step, M_counter, QL_LR_CORRECTION=True, **ql_params)
 
 
 # = MAIN =
@@ -314,8 +327,27 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     return buckets
 
 
-def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
+@_coconut_mark_as_match
+def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
     """Plot cooperation proportions for all the given games."""
+    _coconut_match_check = False
+    _coconut_FunctionMatchError = _coconut_get_function_match_error()
+    games = _coconut_match_to_args[0:]
+    _coconut_match_temp_0 = _coconut_match_to_kwargs.pop("linestyles") if "linestyles" in _coconut_match_to_kwargs else (":", "-.", "--", "-")
+    _coconut_match_temp_1 = _coconut_match_to_kwargs.pop("alpha") if "alpha" in _coconut_match_to_kwargs else 0.6
+    _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("linewidth") if "linewidth" in _coconut_match_to_kwargs else 2.25
+    linestyles = _coconut_match_temp_0
+    alpha = _coconut_match_temp_1
+    linewidth = _coconut_match_temp_2
+    kwargs = _coconut_match_to_kwargs
+    _coconut_match_check = True
+    if not _coconut_match_check:
+        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
+        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " '\'match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):\'' " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+        _coconut_match_err.pattern = 'match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):'
+        _coconut_match_err.value = _coconut_match_to_args
+        raise _coconut_match_err
+
     experiments = dict(((g.name), (run_experiment(g, **kwargs))) for g in games)
     fig, ax = plt.subplots(1)
     for (name, buckets), ls in zip(experiments.items(), repeat(linestyles)):
@@ -337,9 +369,9 @@ if __name__ == "__main__":
 #     ql_boltz_true_avg_game,
 #     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
 #     ql_eps_greedy_decay_run_avg_decoupled_game,
-#     ql_eps_greedy_decay_true_avg_game,
 #     ql_eps_greedy_decay_run_avg_game,
 #     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+#     ql_eps_greedy_decay_true_avg_game,
 #     ql_eps_greedy_run_avg_lr_decay_correction_game,
 #     ql_eps_greedy_run_avg_lr_decay_game,
 #     ql_eps_greedy_run_avg_lr_correction_game,
