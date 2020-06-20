@@ -91,14 +91,14 @@ Functions
 :   Construct an agent that just initializes name to the given constant.
 
     
-`iterator_agent(name, iterable, extra_defaults={'M_it': count(2, 1)}, **kwargs)`
+`iterator_agent(name, iterable, extra_defaults={}, **kwargs)`
 :   Construct an agent that successively produces values from the given
     iterable. Extra arguments are passed to Agent.
 
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x000001C60A070C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
+`Agent(name, actor, default=<object object at 0x000002EFEB574C90>, period=1, extra_defaults={}, copy_func=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -113,7 +113,7 @@ Classes
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x000001C60A070CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x000001C60A070CA0>, debug=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x000002EFEB574CA0>, period=None, extra_defaults=None, copy_func=<object object at 0x000002EFEB574CA0>, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `get_defaults(self)`

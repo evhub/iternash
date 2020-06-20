@@ -9,7 +9,15 @@ Functions
 :   
 
     
-`get_a1_a2(env)`
+`get_boltz_pc(env, s, temp=None)`
+:   
+
+    
+`get_eps_greedy_pc(env, s, eps=None)`
+:   
+
+    
+`get_prev_a(env)`
 :   
 
     
@@ -17,12 +25,12 @@ Functions
 :   Plot cooperation proportions for all the given games.
 
     
-`plot_pc(game, num_steps=10000)`
-:   Plot pc over time in the given game.
+`plot_pcs(game, num_steps=10000, **kwargs)`
+:   Plot pcs over time in the given game.
 
     
-`plot_qc_qd(game, num_steps=10000)`
-:   Plot qc and qd over time in the given game.
+`plot_qs(game, num_steps=10000, **kwargs)`
+:   Plot qs over time in the given game.
 
     
 `run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_calc_steps=500)`

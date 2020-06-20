@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xab470b58
+# __coconut_hash__ = 0x5546b087
 
-# Compiled with Coconut version 1.4.3-post_dev28 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev30 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -31,12 +31,12 @@ from matplotlib import pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 
-from iternash import Game
-from iternash import agent
-from iternash import expr_agent
-from iternash import bbopt_agent
-from iternash import debug_agent
-from iternash import human_agent
+from iternash.game import Game
+from iternash.agent import agent
+from iternash.agent import expr_agent
+from iternash.agent import bbopt_agent
+from iternash.agent import debug_agent
+from iternash.agent import human_agent
 
 
 common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_f=0)
@@ -97,7 +97,7 @@ seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", d
 
 
 # black-box-optimized p agent that attempts to maximize ER
-bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.00001, 1), util_func=_coconut.operator.itemgetter("ER"), file=__file__, default=0.9)
+bbopt_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: 1 - bb.loguniform("p", 0.00001, 1), util_func=_coconut.operator.itemgetter(("ER")), file=__file__, default=0.9)
 
 
 # black-box-optimized n agent that attempts to set PC to eps

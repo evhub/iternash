@@ -56,11 +56,11 @@ Classes
     `finalize(self, ensure_all_agents_run=True)`
     :   Gather final parameters, running every agent again if _ensure_all_agents_run_.
 
-    `plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, **kwargs)`
+    `plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, alpha=0.6, **kwargs)`
     :   Plot _xs_ vs. _ys_ on the given axis with automatic or custom
         label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
-        be None to replace with a sequence and must otherwise be either
-        a variable name or a list.
+        be None to replace with a sequence and must otherwise be a
+        variable name, list, or function of the env.
 
     `reset(self, name=None, *agents, **named_agents)`
     :   Set all default values and start the step counter. If you want to run

@@ -1,11 +1,9 @@
 from math import log, exp, ceil
 
-from iternash import (
-    Game,
+from iternash.game import Game
+from iternash.agent import (
     agent,
     hist_agent,
-    debug_all_agent,
-    iterator_agent,
 )
 from iternash.util import repeat
 
@@ -19,6 +17,16 @@ from tqdm import tqdm
 C = 0
 D = 1
 
+SELF_PD_PAYOFFS = [
+    [2, 3],
+    [-1, 0],
+]
+
+BUTTON_PAYOFFS = [
+    [1, 1],
+    [0, 0],
+]
+
 
 def coop_with_prob(p) =
     np.random.binomial(1, 1 - p)
@@ -26,41 +34,32 @@ def coop_with_prob(p) =
 
 common_params = dict(
     INIT_C_PROB=0.5,
-    PD_PAYOFFS=[
-        [2, 3],
-        [-1, 0],
-    ],
-    BUTTON_PAYOFFS=[
-        [1, 1],
-        [0, 0],
-    ],
+    PAYOFFS=SELF_PD_PAYOFFS,
+    USE_STATE=True,
 )
 
 
-a_hist_1step = hist_agent("a_hist", "a", maxhist=1)
+a_hist_1step = hist_agent("a_hist_1step", "a", maxhist=1)
 
 
-def get_a1_a2(env):
-    if env["a_hist"]:
-        a1 = env["a_hist"][-1]
+def get_prev_a(env):
+    if not env["a_hist_1step"]:
+        env["a_hist_1step"].append(coop_with_prob(env["INIT_C_PROB"]))
+    return env["a_hist_1step"][-1]
+
+
+@agent(name="r")
+def get_reward(env):
+    a1, a2 = get_prev_a(env), env["a"]
+    return env["PAYOFFS"][a1][a2]
+
+
+@agent(name="s", default=C)
+def get_state(env):
+    if env["USE_STATE"]:
+        return C
     else:
-        a1 = coop_with_prob(env["INIT_C_PROB"])
-    return a1, env["a"]
-
-
-@agent(name="r")
-def self_pd_reward(env):
-    a1, a2 = get_a1_a2(env)
-    return env["PD_PAYOFFS"][a1][a2]
-
-
-@agent(name="r")
-def button_reward(env):
-    a1, a2 = get_a1_a2(env)
-    return env["BUTTON_PAYOFFS"][a1][a2]
-
-
-GET_REWARD = self_pd_reward
+        return get_prev_a(env)
 
 
 # = POLICY GRADIENT GAME =
@@ -74,15 +73,16 @@ pol_grad_params.update(
 
 @agent(name="a")
 def pol_grad_act(env):
-    return coop_with_prob(env["pc"])
+    return coop_with_prob(env["pcs"][env["s"]])
 
 
-@agent(name="pc", default=np.random.random())
+@agent(name="pcs", default=[np.random.random(), np.random.random()])
 def pol_grad_update(env):
     lr = env["POL_GRAD_LR"]
     eps = env["CLIP_EPS"]
+    th = env["pcs"]
     a = env["a"]
-    th = env["pc"]
+    s = env["s"]
     # grad[th] E[r(a) | a~pi[th]]
     # = sum[a] grad[th] p(a|pi[th]) r(a)
     # = sum[a] r(a) grad[th] p(a|pi[th])
@@ -92,36 +92,31 @@ def pol_grad_update(env):
         # grad[th] log(p(C|pi[th]))
         # = grad[th] log(th)
         # = 1/th
-        th += lr * env["r"] * (1/th)
+        th[s] += lr * env["r"] * (1/th[s])
     elif a == D:
         # grad[th] log(p(D|pi[th])
         # = grad[th] log(1 - th)
         # = -1/(1 - th)
-        th += lr * env["r"] * (-1/(1 - th))
+        th[s] += lr * env["r"] * (-1/(1 - th[s]))
     else:
         raise ValueError(f"got invalid action {a}")
-    return np.clip(th, eps, 1-eps)
+    th[s] = np.clip(th[s], eps, 1 - eps)
+    return th
 
 
-@agent(name="pc", default=np.random.random())
+@agent(name="pcs", default=[np.random.random(), np.random.random()])
 def pol_grad_decoupled_update(env):
-    lr = env["POL_GRAD_LR"]
-    eps = env["CLIP_EPS"]
-    th = env["pc"]
-    k = coop_with_prob(th)
-    if k == C:
-        th += lr * env["r"] * (1/th)
-    elif k == D:
-        th += lr * env["r"] * (-1/(1 - th))
-    else:
-        raise ValueError(f"got invalid action {a}")
-    return np.clip(th, eps, 1-eps)
+    new_env = env.copy()
+    k = pol_grad_act(env)
+    new_env["a"] = k
+    return pol_grad_update(new_env)
 
 
 pol_grad_game = Game(
     "pol_grad",
+    get_state,
     pol_grad_act,
-    GET_REWARD,
+    get_reward,
     pol_grad_update,
     a_hist_1step,
     **pol_grad_params,
@@ -130,8 +125,9 @@ pol_grad_game = Game(
 
 pol_grad_decoupled_game = Game(
     "pol_grad_decoupled",
+    get_state,
     pol_grad_act,
-    GET_REWARD,
+    get_reward,
     pol_grad_decoupled_update,
     a_hist_1step,
     **pol_grad_params,
@@ -148,12 +144,10 @@ ql_params.update(
 )
 
 
-@agent(name="pc")
-def eps_greedy_pc(env, eps=None):
-    """Get the epsilon greedy probability of cooperation."""
+def get_eps_greedy_pc(env, s, eps=None):
     eps ??= env["EXPLORE_EPS"]
-    QC = env["qs"][C]
-    QD = env["qs"][D]
+    QC = env["qs"][s][C]
+    QD = env["qs"][s][D]
 
     prob_coop = eps/2
     if QC == QD:
@@ -163,90 +157,99 @@ def eps_greedy_pc(env, eps=None):
     return prob_coop
 
 
-@agent(name="pc")
-def boltz_pc(env, temp=None):
+@agent(name="pcs")
+def eps_greedy_pcs(env):
+    return [get_eps_greedy_pc(env, i) for i in range(2)]
+
+
+def get_boltz_pc(env, s, temp=None):
     temp ??= env["BOLTZ_TEMP"]
-    QC = env["qs"][C]
-    QD = env["qs"][D]
+    QC = env["qs"][s][C]
+    QD = env["qs"][s][D]
     zc = exp(QC/temp)
     zd = exp(QD/temp)
     return zc/(zc + zd)
 
 
-@agent(name="pc")
-def eps_greedy_decay_pc(env):
-    return eps_greedy_pc(env, eps=1/env["M"])
+@agent(name="pcs")
+def boltz_pcs(env):
+    return [get_boltz_pc(env, i) for i in range(2)]
+
+
+@agent(name="pcs")
+def eps_greedy_decay_pcs(env):
+    new_env = env.copy()
+    new_env["EXPLORE_EPS"] = 1/env["M"][env["s"]]
+    return eps_greedy_pcs(new_env)
 
 
 @agent(name="a")
-def ql_pc_act(env):
-    return coop_with_prob(env["pc"])
+def ql_pcs_act(env):
+    return coop_with_prob(env["pcs"][env["s"]])
 
 
-@agent(name="a")
-def ql_boltz_act(env):
-    GUMB_C = env["BOLTZ_TEMP"]
-    qs = np.array(env["qs"], dtype=float)
-    zs = np.random.gumbel(size=qs.shape)
-    return np.argmax(qs + GUMB_C * zs)
-
-
-@agent(name="qs", default=[0, 0], extra_defaults=dict(
-    q_sums=[0, 0],
-    q_counts=[0, 0],
+@agent(name="qs", default=np.zeros((2, 2)), extra_defaults=dict(
+    q_sums=np.zeros((2, 2)),
+    q_counts=np.zeros((2, 2)),
 ))
 def ql_true_avg_update(env):
+    s = env["s"]
     a = env["a"]
-    env["q_sums"][a] += env["r"]
-    env["q_counts"][a] += 1
-    env["qs"][a] = env["q_sums"][a]/env["q_counts"][a]
+    env["q_sums"][s, a] += env["r"]
+    env["q_counts"][s, a] += 1
+    env["qs"][s, a] = env["q_sums"][s, a]/env["q_counts"][s, a]
     return env["qs"]
 
 
-@agent(name="qs", default=[0, 0])
+@agent(name="qs", default=np.zeros((2, 2)))
 def ql_run_avg_update(env):
+    s = env["s"]
     a = env["a"]
     al = env["QL_LR"]
     if env.get("QL_LR_DECAY"):
-        al /= env["M"]
+        al /= env["M"][s]
     if env.get("QL_LR_CORRECTION"):
-        prob_a = env["pc"] if a == C else 1 - env["pc"]
+        prob_a = env["pcs"][s] if a == C else 1 - env["pcs"][s]
         al /= prob_a
-    env["qs"][a] = (1 - al) * env["qs"][a] + al * env["r"]
+    env["qs"][s, a] = (1 - al) * env["qs"][s, a] + al * env["r"]
     return env["qs"]
 
 
-M_counter = iterator_agent("M", count(2), default=1)
+@agent(name="M", default=[1, 1])
+def M_counter(env):
+    env["M"][env["s"]] += 1
+    return env["M"]
 
 
-@agent(name="qs", default=[0, 0])
+@agent(name="qs", default=np.zeros((2, 2)))
 def ql_decoupled_update(env):
-    M = env["M"]
     al_init = env["QL_LR"]
+    s = env["s"]
 
     num_actions = 2
-    k_eps = max(1/M, al_init * num_actions)
-    prob_k_coop = eps_greedy_pc(env, eps=k_eps)
+    k_eps = max(1/env["M"][s], al_init * num_actions)
+    prob_k_coop = get_eps_greedy_pc(env, s, eps=k_eps)
     k = coop_with_prob(prob_k_coop)
 
     al = al_init
     if env.get("QL_LR_DECAY"):
-        al /= env["M"]
+        al /= env["M"][s]
     if env.get("QL_LR_CORRECTION"):
         if k == C:
             prob_k = prob_k_coop
         else:
             prob_k = 1 - prob_k_coop
         al /= prob_k
-    env["qs"][k] = (1 - al) * env["qs"][k] + al * env["r"]
+    env["qs"][s, k] = (1 - al) * env["qs"][s, k] + al * env["r"]
     return env["qs"]
 
 
 ql_eps_greedy_true_avg_game = Game(
     "ql_eps_greedy_true_avg",
-    eps_greedy_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_true_avg_update,
     a_hist_1step,
     **ql_params,
@@ -255,9 +258,10 @@ ql_eps_greedy_true_avg_game = Game(
 
 ql_eps_greedy_run_avg_game = Game(
     "ql_eps_greedy_run_avg",
-    eps_greedy_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     **ql_params,
@@ -266,9 +270,10 @@ ql_eps_greedy_run_avg_game = Game(
 
 ql_boltz_run_avg_game = Game(
     "ql_boltz_run_avg",
-    boltz_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    boltz_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     **ql_params,
@@ -277,9 +282,10 @@ ql_boltz_run_avg_game = Game(
 
 ql_boltz_true_avg_game = Game(
     "ql_boltz_true_avg",
-    boltz_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    boltz_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_true_avg_update,
     a_hist_1step,
     **ql_params,
@@ -288,9 +294,10 @@ ql_boltz_true_avg_game = Game(
 
 ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game = Game(
     "ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction",
-    eps_greedy_decay_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_decay_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_decoupled_update,
     a_hist_1step,
     M_counter,
@@ -302,9 +309,10 @@ ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game = Game(
 
 ql_eps_greedy_decay_run_avg_decoupled_game = Game(
     "ql_eps_greedy_decay_run_avg_decoupled",
-    eps_greedy_decay_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_decay_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_decoupled_update,
     a_hist_1step,
     M_counter,
@@ -314,9 +322,10 @@ ql_eps_greedy_decay_run_avg_decoupled_game = Game(
 
 ql_eps_greedy_decay_true_avg_game = Game(
     "ql_eps_greedy_decay_true_avg",
-    eps_greedy_decay_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_decay_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_true_avg_update,
     a_hist_1step,
     M_counter,
@@ -326,9 +335,10 @@ ql_eps_greedy_decay_true_avg_game = Game(
 
 ql_eps_greedy_decay_run_avg_game = Game(
     "ql_eps_greedy_decay_run_avg",
-    eps_greedy_decay_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_decay_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -338,9 +348,10 @@ ql_eps_greedy_decay_run_avg_game = Game(
 
 ql_eps_greedy_decay_run_avg_lr_decay_correction_game = Game(
     "ql_eps_greedy_decay_run_avg_lr_decay_correction",
-    eps_greedy_decay_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_decay_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -352,9 +363,10 @@ ql_eps_greedy_decay_run_avg_lr_decay_correction_game = Game(
 
 ql_eps_greedy_run_avg_lr_decay_correction_game = Game(
     "ql_eps_greedy_run_avg_lr_decay_correction",
-    eps_greedy_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -366,9 +378,10 @@ ql_eps_greedy_run_avg_lr_decay_correction_game = Game(
 
 ql_eps_greedy_run_avg_lr_decay_game = Game(
     "ql_eps_greedy_run_avg_lr_decay",
-    eps_greedy_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -379,9 +392,10 @@ ql_eps_greedy_run_avg_lr_decay_game = Game(
 
 ql_eps_greedy_run_avg_lr_correction_game = Game(
     "ql_eps_greedy_run_avg_lr_correction",
-    eps_greedy_pc,
-    ql_pc_act,
-    GET_REWARD,
+    get_state,
+    eps_greedy_pcs,
+    ql_pcs_act,
+    get_reward,
     ql_run_avg_update,
     a_hist_1step,
     M_counter,
@@ -392,46 +406,53 @@ ql_eps_greedy_run_avg_lr_correction_game = Game(
 
 # = MAIN =
 
-def plot_pc(game, num_steps=10_000):
-    """Plot pc over time in the given game."""
+def plot_pcs(game, num_steps=10_000, **kwargs):
+    """Plot pcs over time in the given game."""
     game = game.copy_with_agents(
-        hist_agent("pc_hist", "pc"),
+        hist_agent("pcs_hist", "pcs"),
     )
     game.run(num_steps)
 
     fig, axs = plt.subplots(1, 2)
 
-    xs = range(1, len(game.env["pc_hist"]) + 1)
-    game.plot(axs[0], xs, "pc_hist")
-    axs[0].set(xlabel="t", ylabel="P(C)")
+    xs = range(1, len(game.env["pcs_hist"]) + 1)
+    game.plot(axs[0], xs, env -> env["pcs_hist"] |> map$(.[C]), label="P(C|C)", **kwargs)
+    game.plot(axs[0], xs, env -> env["pcs_hist"] |> map$(.[D]), label="P(C|D)", **kwargs)
+    axs[0].set(xlabel="t")
+    axs[0].legend()
 
     log_xs = xs |> map$(log) |> list
-    game.plot(axs[1], log_xs, "pc_hist")
-    axs[1].set(xlabel="log(t)", ylabel="P(C)")
+    game.plot(axs[1], log_xs, env -> env["pcs_hist"] |> map$(.[C]), label="P(C|C)", **kwargs)
+    game.plot(axs[1], log_xs, env -> env["pcs_hist"] |> map$(.[D]), label="P(C|D)", **kwargs)
+    axs[1].set(xlabel="log(t)")
+    axs[1].legend()
 
     plt.show()
 
 
-def plot_qc_qd(game, num_steps=10_000):
-    """Plot qc and qd over time in the given game."""
+def plot_qs(game, num_steps=10_000, **kwargs):
+    """Plot qs over time in the given game."""
     game = game.copy_with_agents(
-        hist_agent("qc_hist", env -> env["qs"][C]),
-        hist_agent("qd_hist", env -> env["qs"][D]),
+        hist_agent("qs_hist", "qs"),
     )
     game.run(num_steps)
 
     fig, axs = plt.subplots(1, 2)
 
-    xs = range(1, len(game.env["qc_hist"]) + 1)
-    game.plot(axs[0], xs, "qc_hist")
-    game.plot(axs[0], xs, "qd_hist")
-    axs[0].set(xlabel="t", ylabel="qs")
+    xs = range(1, len(game.env["qs_hist"]) + 1)
+    game.plot(axs[0], xs, env -> env["qs_hist"] |> map$(.[C, C]), label="Q(C|C)", **kwargs)
+    game.plot(axs[0], xs, env -> env["qs_hist"] |> map$(.[C, D]), label="Q(D|C)", **kwargs)
+    game.plot(axs[0], xs, env -> env["qs_hist"] |> map$(.[D, C]), label="Q(C|D)", **kwargs)
+    game.plot(axs[0], xs, env -> env["qs_hist"] |> map$(.[D, D]), label="Q(D|D)", **kwargs)
+    axs[0].set(xlabel="t")
     axs[0].legend()
 
     log_xs = xs |> map$(log) |> list
-    game.plot(axs[1], log_xs, "qc_hist")
-    game.plot(axs[1], log_xs, "qd_hist")
-    axs[1].set(xlabel="log(t)", ylabel="qs")
+    game.plot(axs[1], log_xs, env -> env["qs_hist"] |> map$(.[C, C]), label="Q(C|C)", **kwargs)
+    game.plot(axs[1], log_xs, env -> env["qs_hist"] |> map$(.[C, D]), label="Q(D|C)", **kwargs)
+    game.plot(axs[1], log_xs, env -> env["qs_hist"] |> map$(.[D, C]), label="Q(C|D)", **kwargs)
+    game.plot(axs[1], log_xs, env -> env["qs_hist"] |> map$(.[D, D]), label="Q(D|D)", **kwargs)
+    axs[1].set(xlabel="log(t)")
     axs[1].legend()
 
     plt.show()
@@ -440,16 +461,14 @@ def plot_qc_qd(game, num_steps=10_000):
 def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_calc_steps=500):
     """Measure limiting behavior for the given game."""
     game = game.copy_with_agents(
-        hist_agent("pc_hist", "pc", maxhist=pc_calc_steps),
-
+        hist_agent("a_hist", "a", maxhist=pc_calc_steps),
     )
     buckets = [0] * int(1/bucket_size)
     print(f"Running experiment for {game.name}...")
     for _ in tqdm(range(num_iters)):
         game.run(num_steps, use_tqdm=False)
-        pc_hist = game.env["pc_hist"]
-        ave_pc = sum(pc_hist)/len(pc_hist)
-        bucket = int(ave_pc//bucket_size)
+        prop_coop = sum(a == C for a in game.env["a_hist"])/pc_calc_steps
+        bucket = int(prop_coop//bucket_size)
         if bucket == len(buckets):
             bucket -= 1
         buckets[bucket] += 1
@@ -474,20 +493,22 @@ match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6,
 
 
 if __name__ == "__main__":
-    run_experiment(pol_grad_decoupled_game)
-    # plot_experiments(
-    #     pol_grad_game,
-    #     pol_grad_decoupled_game,
-    #     ql_eps_greedy_true_avg_game,
-    #     ql_eps_greedy_run_avg_game,
-    #     ql_boltz_run_avg_game,
-    #     ql_boltz_true_avg_game,
-    #     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
-    #     ql_eps_greedy_decay_run_avg_decoupled_game,
-    #     ql_eps_greedy_decay_run_avg_game,
-    #     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
-    #     ql_eps_greedy_decay_true_avg_game,
-    #     ql_eps_greedy_run_avg_lr_decay_correction_game,
-    #     ql_eps_greedy_run_avg_lr_decay_game,
-    #     ql_eps_greedy_run_avg_lr_correction_game,
-    # )
+    # run_experiment(pol_grad_decoupled_game)
+    # plot_pcs(pol_grad_decoupled_game)
+    # plot_qs(ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game)
+    plot_experiments(
+        pol_grad_game,
+        pol_grad_decoupled_game,
+        ql_eps_greedy_true_avg_game,
+        ql_eps_greedy_run_avg_game,
+        ql_boltz_run_avg_game,
+        ql_boltz_true_avg_game,
+        ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
+        ql_eps_greedy_decay_run_avg_decoupled_game,
+        ql_eps_greedy_decay_run_avg_game,
+        ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+        ql_eps_greedy_decay_true_avg_game,
+        ql_eps_greedy_run_avg_lr_decay_correction_game,
+        ql_eps_greedy_run_avg_lr_decay_game,
+        ql_eps_greedy_run_avg_lr_correction_game,
+    )

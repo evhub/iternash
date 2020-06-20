@@ -143,19 +143,23 @@ class Game:
         finally:
             self.final_step = False
 
-    def plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, **kwargs):
+    def plot(self, ax, xs, ys, xlabel=None, ylabel=None, label=None, alpha=0.6, **kwargs):
         """Plot _xs_ vs. _ys_ on the given axis with automatic or custom
         label names and _kwargs_ passed to plot. One of _xs_ or _ys_ may
-        be None to replace with a sequence and must otherwise be either
-        a variable name or a list."""
+        be None to replace with a sequence and must otherwise be a
+        variable name, list, or function of the env."""
         if xs is None and ys is None:
             raise ValueError("both of xs and ys cannot be None")
         if isinstance(xs, Str):
             xs_list = self.env[xs]
+        elif callable(xs):
+            xs_list = xs(self.env)
         else:
             xs_list = xs
         if isinstance(ys, Str):
             ys_list = self.env[ys]
+        elif callable(ys):
+            ys_list = ys(self.env)
         else:
             ys_list = ys
         if xs_list is not None:
@@ -178,5 +182,5 @@ class Game:
         label ??= ys ?? xs
         if isinstance(label, Str):
             kwargs["label"] = label
-        ax.plot(xs_list, ys_list, **kwargs)
+        ax.plot(xs_list, ys_list, alpha=alpha, **kwargs)
         return ax
