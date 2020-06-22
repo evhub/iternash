@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.4.3-post_dev30 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
 """Built-in Coconut utilities."""
 

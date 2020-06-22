@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe9631b86
+# __coconut_hash__ = 0xa6a69eb9
 
-# Compiled with Coconut version 1.4.3-post_dev30 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -43,12 +43,14 @@ SELF_PD_PAYOFFS = [[2, 3], [-1, 0],]
 
 BUTTON_PAYOFFS = [[1, 1], [0, 0],]
 
+PAY_FORWARD_PAYOFFS = [[1, 2], [-1, 0],]
+
 
 def coop_with_prob(p):
     return np.random.binomial(1, 1 - p)
 
 
-common_params = dict(INIT_C_PROB=0.5, PAYOFFS=SELF_PD_PAYOFFS, USE_STATE=True)
+common_params = dict(INIT_C_PROB=0.5, PAYOFFS=SELF_PD_PAYOFFS, USE_STATE=False)
 
 
 a_hist_1step = hist_agent("a_hist_1step", "a", maxhist=1)
@@ -366,7 +368,22 @@ def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
 
 
 if __name__ == "__main__":
-# run_experiment(pol_grad_decoupled_game)
+    run_experiment(pol_grad_decoupled_game)
 # plot_pcs(pol_grad_decoupled_game)
 # plot_qs(ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game)
-    plot_experiments(pol_grad_game, pol_grad_decoupled_game, ql_eps_greedy_true_avg_game, ql_eps_greedy_run_avg_game, ql_boltz_run_avg_game, ql_boltz_true_avg_game, ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game, ql_eps_greedy_decay_run_avg_decoupled_game, ql_eps_greedy_decay_run_avg_game, ql_eps_greedy_decay_run_avg_lr_decay_correction_game, ql_eps_greedy_decay_true_avg_game, ql_eps_greedy_run_avg_lr_decay_correction_game, ql_eps_greedy_run_avg_lr_decay_game, ql_eps_greedy_run_avg_lr_correction_game)
+# plot_experiments(
+#     pol_grad_game,
+#     pol_grad_decoupled_game,
+#     ql_eps_greedy_true_avg_game,
+#     ql_eps_greedy_run_avg_game,
+#     ql_boltz_run_avg_game,
+#     ql_boltz_true_avg_game,
+#     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
+#     ql_eps_greedy_decay_run_avg_decoupled_game,
+#     ql_eps_greedy_decay_run_avg_game,
+#     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+#     ql_eps_greedy_decay_true_avg_game,
+#     ql_eps_greedy_run_avg_lr_decay_correction_game,
+#     ql_eps_greedy_run_avg_lr_decay_game,
+#     ql_eps_greedy_run_avg_lr_correction_game,
+# )

@@ -27,6 +27,11 @@ BUTTON_PAYOFFS = [
     [0, 0],
 ]
 
+PAY_FORWARD_PAYOFFS = [
+    [1, 2],
+    [-1, 0],
+]
+
 
 def coop_with_prob(p) =
     np.random.binomial(1, 1 - p)
@@ -35,7 +40,7 @@ def coop_with_prob(p) =
 common_params = dict(
     INIT_C_PROB=0.5,
     PAYOFFS=SELF_PD_PAYOFFS,
-    USE_STATE=True,
+    USE_STATE=False,
 )
 
 
@@ -493,22 +498,22 @@ match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6,
 
 
 if __name__ == "__main__":
-    # run_experiment(pol_grad_decoupled_game)
+    run_experiment(pol_grad_decoupled_game)
     # plot_pcs(pol_grad_decoupled_game)
     # plot_qs(ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game)
-    plot_experiments(
-        pol_grad_game,
-        pol_grad_decoupled_game,
-        ql_eps_greedy_true_avg_game,
-        ql_eps_greedy_run_avg_game,
-        ql_boltz_run_avg_game,
-        ql_boltz_true_avg_game,
-        ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
-        ql_eps_greedy_decay_run_avg_decoupled_game,
-        ql_eps_greedy_decay_run_avg_game,
-        ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
-        ql_eps_greedy_decay_true_avg_game,
-        ql_eps_greedy_run_avg_lr_decay_correction_game,
-        ql_eps_greedy_run_avg_lr_decay_game,
-        ql_eps_greedy_run_avg_lr_correction_game,
-    )
+    # plot_experiments(
+    #     pol_grad_game,
+    #     pol_grad_decoupled_game,
+    #     ql_eps_greedy_true_avg_game,
+    #     ql_eps_greedy_run_avg_game,
+    #     ql_boltz_run_avg_game,
+    #     ql_boltz_true_avg_game,
+    #     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
+    #     ql_eps_greedy_decay_run_avg_decoupled_game,
+    #     ql_eps_greedy_decay_run_avg_game,
+    #     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+    #     ql_eps_greedy_decay_true_avg_game,
+    #     ql_eps_greedy_run_avg_lr_decay_correction_game,
+    #     ql_eps_greedy_run_avg_lr_decay_game,
+    #     ql_eps_greedy_run_avg_lr_correction_game,
+    # )
