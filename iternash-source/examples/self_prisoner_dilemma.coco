@@ -17,20 +17,27 @@ from tqdm import tqdm
 C = 0
 D = 1
 
+floatarr = np.array$(dtype=float)
+
 SELF_PD_PAYOFFS = [
     [2, 3],
     [-1, 0],
-]
+] |> floatarr
+
+PAY_FORWARD_DEL = [
+    [-1, 0],
+    [-1, 0],
+] |> floatarr
+PAY_FORWARD_C = [
+    [2, 2],
+    [0, 0],
+] |> floatarr
+PAY_FORWARD_PAYOFFS = PAY_FORWARD_DEL + PAY_FORWARD_C
 
 BUTTON_PAYOFFS = [
     [1, 1],
     [0, 0],
-]
-
-PAY_FORWARD_PAYOFFS = [
-    [1, 2],
-    [-1, 0],
-]
+] |> floatarr
 
 
 def coop_with_prob(p) =
@@ -39,7 +46,7 @@ def coop_with_prob(p) =
 
 common_params = dict(
     INIT_C_PROB=0.5,
-    PAYOFFS=SELF_PD_PAYOFFS,
+    PAYOFFS=PAY_FORWARD_PAYOFFS,
     USE_STATE=False,
 )
 

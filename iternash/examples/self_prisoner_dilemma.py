@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa6a69eb9
+# __coconut_hash__ = 0xd931a4b4
 
 # Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
@@ -39,18 +39,22 @@ from tqdm import tqdm
 C = 0
 D = 1
 
-SELF_PD_PAYOFFS = [[2, 3], [-1, 0],]
+floatarr = _coconut.functools.partial(np.array, dtype=float)
 
-BUTTON_PAYOFFS = [[1, 1], [0, 0],]
+SELF_PD_PAYOFFS = (floatarr)([[2, 3], [-1, 0],])
 
-PAY_FORWARD_PAYOFFS = [[1, 2], [-1, 0],]
+PAY_FORWARD_DEL = (floatarr)([[-1, 0], [-1, 0],])
+PAY_FORWARD_C = (floatarr)([[2, 2], [0, 0],])
+PAY_FORWARD_PAYOFFS = PAY_FORWARD_DEL + PAY_FORWARD_C
+
+BUTTON_PAYOFFS = (floatarr)([[1, 1], [0, 0],])
 
 
 def coop_with_prob(p):
     return np.random.binomial(1, 1 - p)
 
 
-common_params = dict(INIT_C_PROB=0.5, PAYOFFS=SELF_PD_PAYOFFS, USE_STATE=False)
+common_params = dict(INIT_C_PROB=0.5, PAYOFFS=PAY_FORWARD_PAYOFFS, USE_STATE=False)
 
 
 a_hist_1step = hist_agent("a_hist_1step", "a", maxhist=1)
