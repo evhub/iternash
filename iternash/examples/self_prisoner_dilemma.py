@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd931a4b4
+# __coconut_hash__ = 0x5e01bd77
 
 # Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
@@ -41,20 +41,26 @@ D = 1
 
 floatarr = _coconut.functools.partial(np.array, dtype=float)
 
-SELF_PD_PAYOFFS = (floatarr)([[2, 3], [-1, 0],])
+COOP_PENALTY = (floatarr)([[-1, 0], [-1, 0],])
+DEFECT_REWARD = COOP_PENALTY + 2
 
-PAY_FORWARD_DEL = (floatarr)([[-1, 0], [-1, 0],])
-PAY_FORWARD_C = (floatarr)([[2, 2], [0, 0],])
-PAY_FORWARD_PAYOFFS = PAY_FORWARD_DEL + PAY_FORWARD_C
+PREV_COOP_REWARD = (floatarr)([[1, 1], [0, 0],])
+PREV_DEFECT_PENALTY = PREV_COOP_REWARD - 2
 
-BUTTON_PAYOFFS = (floatarr)([[1, 1], [0, 0],])
+SELF_PD_PAYOFFS = COOP_PENALTY + 3 * PREV_COOP_REWARD
+
+PAY_FORWARD_PAYOFFS = COOP_PENALTY + 2 * PREV_COOP_REWARD
+
+COOKIE_PAYOFFS = DEFECT_REWARD + 2 * PREV_DEFECT_PENALTY
+
+BUTTON_PAYOFFS = PREV_COOP_REWARD
 
 
 def coop_with_prob(p):
     return np.random.binomial(1, 1 - p)
 
 
-common_params = dict(INIT_C_PROB=0.5, PAYOFFS=PAY_FORWARD_PAYOFFS, USE_STATE=False)
+common_params = dict(INIT_C_PROB=0.5, PAYOFFS=SELF_PD_PAYOFFS, USE_STATE=False)
 
 
 a_hist_1step = hist_agent("a_hist_1step", "a", maxhist=1)

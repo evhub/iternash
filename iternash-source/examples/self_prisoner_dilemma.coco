@@ -19,25 +19,25 @@ D = 1
 
 floatarr = np.array$(dtype=float)
 
-SELF_PD_PAYOFFS = [
-    [2, 3],
+COOP_PENALTY = [
+    [-1, 0],
     [-1, 0],
 ] |> floatarr
+DEFECT_REWARD = COOP_PENALTY + 2
 
-PAY_FORWARD_DEL = [
-    [-1, 0],
-    [-1, 0],
-] |> floatarr
-PAY_FORWARD_C = [
-    [2, 2],
-    [0, 0],
-] |> floatarr
-PAY_FORWARD_PAYOFFS = PAY_FORWARD_DEL + PAY_FORWARD_C
-
-BUTTON_PAYOFFS = [
+PREV_COOP_REWARD = [
     [1, 1],
     [0, 0],
 ] |> floatarr
+PREV_DEFECT_PENALTY = PREV_COOP_REWARD - 2
+
+SELF_PD_PAYOFFS = COOP_PENALTY + 3*PREV_COOP_REWARD
+
+PAY_FORWARD_PAYOFFS = COOP_PENALTY + 2*PREV_COOP_REWARD
+
+COOKIE_PAYOFFS = DEFECT_REWARD + 2*PREV_DEFECT_PENALTY
+
+BUTTON_PAYOFFS = PREV_COOP_REWARD
 
 
 def coop_with_prob(p) =
@@ -46,7 +46,7 @@ def coop_with_prob(p) =
 
 common_params = dict(
     INIT_C_PROB=0.5,
-    PAYOFFS=PAY_FORWARD_PAYOFFS,
+    PAYOFFS=SELF_PD_PAYOFFS,
     USE_STATE=False,
 )
 
