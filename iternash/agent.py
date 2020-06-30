@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd90033f8
+# __coconut_hash__ = 0x17808f45
 
 # Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
@@ -209,7 +209,7 @@ def init_agent(name, constant):
     return Agent(name, lambda env: constant, default=constant, period=float("inf"))
 
 
-def hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs):
+def hist_agent(name, record_var, maxhist=None, copy_func=deepcopy, initializer=(), **kwargs):
     """Construct an agent that records a history.
 
     Parameters:
@@ -224,6 +224,8 @@ def hist_agent(name, record_var, maxhist=None, initializer=(), **kwargs):
             got_val = env[record_var]
         else:
             got_val = record_var(env)
+        if copy_func is not None:
+            got_val = copy_func(got_val)
         env[name].append(got_val)
         return env[name]
     init_hist = [] if maxhist is None else deque(maxlen=maxhist)

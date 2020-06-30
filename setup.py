@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6e3c417e
+# __coconut_hash__ = 0xcacc1461
 
 # Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
 
@@ -745,4 +745,4 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_makedata, _coc
 import setuptools
 
 
-setuptools.setup(name="iternash", version="0.3.2", description="Iterative Nash equilibrium finder for simulating continuous games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3",]})
+setuptools.setup(name="iternash", version="0.3.3", description="Iterative Nash equilibrium finder for simulating continuous games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3",]})
