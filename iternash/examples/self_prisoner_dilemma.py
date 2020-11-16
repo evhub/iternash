@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x61fec386
+# __coconut_hash__ = 0x143cc324
 
-# Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -14,7 +14,7 @@ if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cach
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_path)
 from __coconut__ import *
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_back_pipe, _coconut_star_pipe, _coconut_back_star_pipe, _coconut_dubstar_pipe, _coconut_back_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
 if _coconut_sys.version_info >= (3,):
     _coconut_sys.path.pop(0)
 
@@ -313,14 +313,14 @@ def plot_pcs(game, num_steps=10000, axs=None, **kwargs):
         fig, axs = plt.subplots(1, 2)
 
     xs = range(1, len(game.env["pcs_hist"]) + 1)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((C)), env["pcs_hist"]), label="P(C|C)", **kwargs)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((D)), env["pcs_hist"]), label="P(C|D)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((C)), env["pcs_hist"]), label="P(C|C)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((D)), env["pcs_hist"]), label="P(C|D)", **kwargs)
     axs[0].set(xlabel="t")
     axs[0].legend()
 
-    log_xs = (list)(map(log, xs))
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((C)), env["pcs_hist"]), label="P(C|C)", **kwargs)
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((D)), env["pcs_hist"]), label="P(C|D)", **kwargs)
+    log_xs = (list)((map)(log, xs))
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((C)), env["pcs_hist"]), label="P(C|C)", **kwargs)
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((D)), env["pcs_hist"]), label="P(C|D)", **kwargs)
     axs[1].set(xlabel="log(t)")
     axs[1].legend()
 
@@ -339,18 +339,18 @@ def plot_qs(game, num_steps=10000, axs=None, **kwargs):
         fig, axs = plt.subplots(1, 2)
 
     xs = range(1, len(game.env["qs_hist"]) + 1)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((C, C)), env["qs_hist"]), label="Q(C|C)", **kwargs)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((C, D)), env["qs_hist"]), label="Q(D|C)", **kwargs)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((D, C)), env["qs_hist"]), label="Q(C|D)", **kwargs)
-    game.plot(axs[0], xs, lambda env: map(_coconut.operator.itemgetter((D, D)), env["qs_hist"]), label="Q(D|D)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((C, C)), env["qs_hist"]), label="Q(C|C)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((C, D)), env["qs_hist"]), label="Q(D|C)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((D, C)), env["qs_hist"]), label="Q(C|D)", **kwargs)
+    game.plot(axs[0], xs, lambda env: (map)(_coconut.operator.itemgetter((D, D)), env["qs_hist"]), label="Q(D|D)", **kwargs)
     axs[0].set(xlabel="t")
     axs[0].legend()
 
-    log_xs = (list)(map(log, xs))
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((C, C)), env["qs_hist"]), label="Q(C|C)", **kwargs)
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((C, D)), env["qs_hist"]), label="Q(D|C)", **kwargs)
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((D, C)), env["qs_hist"]), label="Q(C|D)", **kwargs)
-    game.plot(axs[1], log_xs, lambda env: map(_coconut.operator.itemgetter((D, D)), env["qs_hist"]), label="Q(D|D)", **kwargs)
+    log_xs = (list)((map)(log, xs))
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((C, C)), env["qs_hist"]), label="Q(C|C)", **kwargs)
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((C, D)), env["qs_hist"]), label="Q(D|C)", **kwargs)
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((D, C)), env["qs_hist"]), label="Q(C|D)", **kwargs)
+    game.plot(axs[1], log_xs, lambda env: (map)(_coconut.operator.itemgetter((D, D)), env["qs_hist"]), label="Q(D|D)", **kwargs)
     axs[1].set(xlabel="log(t)")
     axs[1].legend()
 
@@ -367,8 +367,8 @@ def plot_M(game, num_steps=10000, axs=None, **kwargs):
     if axs is None:
         fig, axs = plt.subplots(1, 2)
 
-    MCs = (list)(starmap(lambda i, M: M / (i + 2), (enumerate)(map(_coconut.operator.itemgetter((C)), game.env["M_hist"]))))
-    MDs = (list)(starmap(lambda i, M: M / (i + 2), (enumerate)(map(_coconut.operator.itemgetter((D)), game.env["M_hist"]))))
+    MCs = (list)((starmap)(lambda i, M: M / (i + 2), (enumerate)((map)(_coconut.operator.itemgetter((C)), game.env["M_hist"]))))
+    MDs = (list)((starmap)(lambda i, M: M / (i + 2), (enumerate)((map)(_coconut.operator.itemgetter((D)), game.env["M_hist"]))))
 
     xs = range(1, len(game.env["M_hist"]) + 1)
     game.plot(axs[0], xs, MCs, label="M(C)/M", **kwargs)
@@ -376,7 +376,7 @@ def plot_M(game, num_steps=10000, axs=None, **kwargs):
     axs[0].set(xlabel="t")
     axs[0].legend()
 
-    log_xs = (list)(map(log, xs))
+    log_xs = (list)((map)(log, xs))
     game.plot(axs[1], log_xs, MCs, label="M(C)/M", **kwargs)
     game.plot(axs[1], log_xs, MDs, label="M(D)/M", **kwargs)
     axs[1].set(xlabel="log(t)")
@@ -433,11 +433,7 @@ def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
     kwargs = _coconut_match_to_kwargs
     _coconut_match_check = True
     if not _coconut_match_check:
-        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
-        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " '\'match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):\'' " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
-        _coconut_match_err.pattern = 'match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):'
-        _coconut_match_err.value = _coconut_match_to_args
-        raise _coconut_match_err
+        raise _coconut_FunctionMatchError('match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):', _coconut_match_to_args)
 
     experiments = dict(((g.name), (run_experiment(g, **kwargs))) for g in games)
     fig, ax = plt.subplots(1)
@@ -451,6 +447,7 @@ def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
 
 if __name__ == "__main__":
     run_experiment(pol_grad_decoupled_game)
+# from coconut import embed; embed()
 # plot_pcs(pol_grad_decoupled_game)
 # plot_qs_pcs_M(ql_eps_greedy_decay_run_avg_decoupled_game)
 # plot_experiments(

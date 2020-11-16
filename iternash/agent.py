@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x17808f45
+# __coconut_hash__ = 0x4a027f84
 
-# Compiled with Coconut version 1.4.3-post_dev32 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -14,7 +14,7 @@ if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cach
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_path)
 from __coconut__ import *
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_back_pipe, _coconut_star_pipe, _coconut_back_star_pipe, _coconut_dubstar_pipe, _coconut_back_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
 if _coconut_sys.version_info >= (3,):
     _coconut_sys.path.pop(0)
 
@@ -65,7 +65,7 @@ class Agent(_coconut.object):
             default = deepcopy(self.default)
         if copy_func is _sentinel:
             copy_func = deepcopy(self.copy_func)
-        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_none_coalesce_item: deepcopy(self.extra_defaults) if _coconut_none_coalesce_item is None else _coconut_none_coalesce_item)(extra_defaults), copy_func, (self.debug if debug is None else debug))
+        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (self.debug if debug is None else debug))
 
     def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""

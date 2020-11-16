@@ -629,6 +629,7 @@ match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6,
 
 if __name__ == "__main__":
     run_experiment(pol_grad_decoupled_game)
+    # from coconut import embed; embed()
     # plot_pcs(pol_grad_decoupled_game)
     # plot_qs_pcs_M(ql_eps_greedy_decay_run_avg_decoupled_game)
     # plot_experiments(
