@@ -43,3 +43,7 @@ Functions
     
 `run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_calc_steps=500)`
 :   Measure limiting behavior for the given game.
+
+    
+`show_expected_coop_props(*games, **kwargs)`
+:   Print the expected proportion of cooperations for the given games.

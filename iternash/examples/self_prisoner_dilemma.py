@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x143cc324
+# __coconut_hash__ = 0x3a204243
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -404,10 +404,12 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     """Measure limiting behavior for the given game."""
     game = game.copy_with_agents(hist_agent("a_hist", "a", maxhist=pc_calc_steps))
     buckets = [0] * int(1 / bucket_size)
+    coop_props = []
     print("Running experiment for {_coconut_format_0}...".format(_coconut_format_0=(game.name)))
     for _ in tqdm(range(num_iters)):
         game.run(num_steps, use_tqdm=False)
         prop_coop = sum((a == C for a in game.env["a_hist"])) / pc_calc_steps
+        coop_props.append(prop_coop)
         bucket = int(prop_coop // bucket_size)
         if bucket == len(buckets):
             bucket -= 1
@@ -415,7 +417,14 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
         game.reset()
     for i in range(len(buckets)):
         buckets[i] /= num_iters
-    return buckets
+    return buckets, sum(coop_props) / len(coop_props)
+
+
+def show_expected_coop_props(*games, **kwargs):
+    """Print the expected proportion of cooperations for the given games."""
+    exp_coop_props = dict(((g.name), (run_experiment(g, **kwargs)[1])) for g in games)
+    for name, result in exp_coop_props.items():
+        print("E[1/N sum[i] C[i] | {_coconut_format_0}] = {_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(result)))
 
 
 @_coconut_mark_as_match
@@ -435,7 +444,7 @@ def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
     if not _coconut_match_check:
         raise _coconut_FunctionMatchError('match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):', _coconut_match_to_args)
 
-    experiments = dict(((g.name), (run_experiment(g, **kwargs))) for g in games)
+    experiments = dict(((g.name), (run_experiment(g, **kwargs)[0])) for g in games)
     fig, ax = plt.subplots(1)
     for (name, buckets), ls in zip(experiments.items(), repeat(linestyles)):
         bucket_xs = np.linspace(0, 1, num=len(buckets))

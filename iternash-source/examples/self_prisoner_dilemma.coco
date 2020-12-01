@@ -599,10 +599,12 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
         hist_agent("a_hist", "a", maxhist=pc_calc_steps),
     )
     buckets = [0] * int(1/bucket_size)
+    coop_props = []
     print(f"Running experiment for {game.name}...")
     for _ in tqdm(range(num_iters)):
         game.run(num_steps, use_tqdm=False)
         prop_coop = sum(a == C for a in game.env["a_hist"])/pc_calc_steps
+        coop_props.append(prop_coop)
         bucket = int(prop_coop//bucket_size)
         if bucket == len(buckets):
             bucket -= 1
@@ -610,13 +612,20 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
         game.reset()
     for i in range(len(buckets)):
         buckets[i] /= num_iters
-    return buckets
+    return buckets, sum(coop_props)/len(coop_props)
+
+
+def show_expected_coop_props(*games, **kwargs):
+    """Print the expected proportion of cooperations for the given games."""
+    exp_coop_props = {g.name: run_experiment(g, **kwargs)[1] for g in games}
+    for name, result in exp_coop_props.items():
+        print(f"E[1/N sum[i] C[i] | {name}] = {result}")
 
 
 match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
     """Plot cooperation proportions for all the given games."""
     experiments = {
-        g.name: run_experiment(g, **kwargs) for g in games
+        g.name: run_experiment(g, **kwargs)[0] for g in games
     }
     fig, ax = plt.subplots(1)
     for (name, buckets), ls in zip(experiments.items(), repeat(linestyles)):
