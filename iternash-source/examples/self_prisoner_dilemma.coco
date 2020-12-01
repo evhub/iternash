@@ -615,20 +615,28 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     return buckets, sum(coop_props)/len(coop_props)
 
 
-def show_expected_coop_props(*games, **kwargs):
+def run_experiments(*games, **kwargs):
+    """Runs multiple experiments and collects the results."""
+    return {g.name: run_experiment(g, **kwargs) for g in games}
+
+
+def show_expected_coop_props(results):
     """Print the expected proportion of cooperations for the given games."""
-    exp_coop_props = {g.name: run_experiment(g, **kwargs)[1] for g in games}
-    for name, result in sorted(exp_coop_props.items(), key=.[1]):
-        print(f"E[1/(m-n) sum[i=n -> m] C[i] | {name}] =\n\t{result}")
+    for name, (_, exp_coop_prop) in sorted(results.items(), key=.[1] ..> .[1]):
+        print(f"E[1/(m-n) sum[i=n -> m] C[i] | {name}] =\n\t{exp_coop_prop}")
 
 
-match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
+def show_percent_in_coop_eq(results):
+    """Print the probability of ending up in a cooperative equilibrium."""
+    for name, (buckets, _) in sorted(results.items(), key=.[1] ..> .[1]):
+        prob_coop_eq = sum(buckets[len(buckets)//2:])/sum(buckets)
+        print(f"P(cooperative equilibrium | {name}] =\n\t{prob_coop_eq}")
+
+
+def plot_experiments(results, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
     """Plot cooperation proportions for all the given games."""
-    experiments = {
-        g.name: run_experiment(g, **kwargs)[0] for g in games
-    }
     fig, ax = plt.subplots(1)
-    for (name, buckets), ls in zip(experiments.items(), repeat(linestyles)):
+    for (name, buckets), ls in results.items() |> map$(kv -> (kv[0], kv[1][0])) |> zip$(?, repeat(linestyles)):
         bucket_xs = np.linspace(0, 1, num=len(buckets))
         ax.plot(bucket_xs, buckets, label=name, ls=ls, alpha=alpha, lw=linewidth)
     ax.set(xlabel="equilibrium cooperation probability", ylabel="probability of equilibrium")
@@ -641,26 +649,27 @@ if __name__ == "__main__":
     # from coconut import embed; embed()
     # plot_pcs(pol_grad_decoupled_game)
     # plot_qs_pcs_M(ql_eps_greedy_decay_run_avg_decoupled_game)
-    # run_func = plot_experiments
-    # run_func = show_expected_coop_props
-    # run_func(
+    # results = run_experiments(
     #     pol_grad_game,
-    #     pol_grad_decoupled_game,
+    #     # pol_grad_decoupled_game,
     #     ql_eps_greedy_true_avg_game,
     #     ql_eps_greedy_run_avg_game,
-    #     ql_boltz_run_avg_game,
-    #     ql_boltz_true_avg_game,
-    #     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
-    #     ql_eps_greedy_decay_run_avg_decoupled_lr_correction_game,
-    #     ql_eps_greedy_decay_run_avg_decoupled_game,
-    #     ql_eps_greedy_decay_run_avg_game,
-    #     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
-    #     ql_eps_greedy_decay_true_avg_game,
-    #     ql_eps_greedy_run_avg_lr_decay_correction_game,
-    #     ql_eps_greedy_run_avg_lr_decay_game,
-    #     ql_eps_greedy_run_avg_lr_correction_game,
-    #     ql_eps_greedy_run_avg_decoupled_lr_decay_correction_game,
-    #     ql_eps_greedy_run_avg_decoupled_lr_correction_game,
-    #     ql_eps_greedy_run_avg_decoupled_game,
+    #     # ql_boltz_run_avg_game,
+    #     # ql_boltz_true_avg_game,
+    #     # ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
+    #     # ql_eps_greedy_decay_run_avg_decoupled_lr_correction_game,
+    #     # ql_eps_greedy_decay_run_avg_decoupled_game,
+    #     # ql_eps_greedy_decay_run_avg_game,
+    #     # ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+    #     # ql_eps_greedy_decay_true_avg_game,
+    #     # ql_eps_greedy_run_avg_lr_decay_correction_game,
+    #     # ql_eps_greedy_run_avg_lr_decay_game,
+    #     # ql_eps_greedy_run_avg_lr_correction_game,
+    #     # ql_eps_greedy_run_avg_decoupled_lr_decay_correction_game,
+    #     # ql_eps_greedy_run_avg_decoupled_lr_correction_game,
+    #     # ql_eps_greedy_run_avg_decoupled_game,
     #     num_iters=100,
     # )
+    # show_expected_coop_props(results)
+    # show_percent_in_coop_eq(results)
+    # plot_experiments(results)

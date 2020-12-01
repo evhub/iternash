@@ -25,7 +25,7 @@ Functions
 :   
 
     
-`plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs)`
+`plot_experiments(results, linestyles=(':', '-.', '--', '-'), alpha=0.6, linewidth=2.25, **kwargs)`
 :   Plot cooperation proportions for all the given games.
 
     
@@ -45,5 +45,13 @@ Functions
 :   Measure limiting behavior for the given game.
 
     
-`show_expected_coop_props(*games, **kwargs)`
+`run_experiments(*games, **kwargs)`
+:   Runs multiple experiments and collects the results.
+
+    
+`show_expected_coop_props(results)`
 :   Print the expected proportion of cooperations for the given games.
+
+    
+`show_percent_in_coop_eq(results)`
+:   Print the probability of ending up in a cooperative equilibrium.

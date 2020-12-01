@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x42af6622
+# __coconut_hash__ = 0x83e347e1
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -420,33 +420,28 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     return buckets, sum(coop_props) / len(coop_props)
 
 
-def show_expected_coop_props(*games, **kwargs):
+def run_experiments(*games, **kwargs):
+    """Runs multiple experiments and collects the results."""
+    return dict(((g.name), (run_experiment(g, **kwargs))) for g in games)
+
+
+def show_expected_coop_props(results):
     """Print the expected proportion of cooperations for the given games."""
-    exp_coop_props = dict(((g.name), (run_experiment(g, **kwargs)[1])) for g in games)
-    for name, result in sorted(exp_coop_props.items(), key=_coconut.operator.itemgetter((1))):
-        print("E[1/(m-n) sum[i=n -> m] C[i] | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(result)))
+    for name, (_, exp_coop_prop) in sorted(results.items(), key=_coconut_base_compose(_coconut.operator.itemgetter((1)), (_coconut.operator.itemgetter((1)), 0))):
+        print("E[1/(m-n) sum[i=n -> m] C[i] | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(exp_coop_prop)))
 
 
-@_coconut_mark_as_match
-def plot_experiments(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+def show_percent_in_coop_eq(results):
+    """Print the probability of ending up in a cooperative equilibrium."""
+    for name, (buckets, _) in sorted(results.items(), key=_coconut_base_compose(_coconut.operator.itemgetter((1)), (_coconut.operator.itemgetter((1)), 0))):
+        prob_coop_eq = sum(buckets[len(buckets) // 2:]) / sum(buckets)
+        print("P(cooperative equilibrium | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(prob_coop_eq)))
+
+
+def plot_experiments(results, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
     """Plot cooperation proportions for all the given games."""
-    _coconut_match_check = False
-    _coconut_FunctionMatchError = _coconut_get_function_match_error()
-    games = _coconut_match_to_args[0:]
-    _coconut_match_temp_0 = _coconut_match_to_kwargs.pop("linestyles") if "linestyles" in _coconut_match_to_kwargs else (":", "-.", "--", "-")
-    _coconut_match_temp_1 = _coconut_match_to_kwargs.pop("alpha") if "alpha" in _coconut_match_to_kwargs else 0.6
-    _coconut_match_temp_2 = _coconut_match_to_kwargs.pop("linewidth") if "linewidth" in _coconut_match_to_kwargs else 2.25
-    linestyles = _coconut_match_temp_0
-    alpha = _coconut_match_temp_1
-    linewidth = _coconut_match_temp_2
-    kwargs = _coconut_match_to_kwargs
-    _coconut_match_check = True
-    if not _coconut_match_check:
-        raise _coconut_FunctionMatchError('match def plot_experiments(*games, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):', _coconut_match_to_args)
-
-    experiments = dict(((g.name), (run_experiment(g, **kwargs)[0])) for g in games)
     fig, ax = plt.subplots(1)
-    for (name, buckets), ls in zip(experiments.items(), repeat(linestyles)):
+    for (name, buckets), ls in (_coconut_partial(zip, {1: repeat(linestyles)}, 2))((map)(lambda kv: (kv[0], kv[1][0]), results.items())):
         bucket_xs = np.linspace(0, 1, num=len(buckets))
         ax.plot(bucket_xs, buckets, label=name, ls=ls, alpha=alpha, lw=linewidth)
     ax.set(xlabel="equilibrium cooperation probability", ylabel="probability of equilibrium")
@@ -459,26 +454,27 @@ if __name__ == "__main__":
 # from coconut import embed; embed()
 # plot_pcs(pol_grad_decoupled_game)
 # plot_qs_pcs_M(ql_eps_greedy_decay_run_avg_decoupled_game)
-# run_func = plot_experiments
-# run_func = show_expected_coop_props
-# run_func(
+# results = run_experiments(
 #     pol_grad_game,
-#     pol_grad_decoupled_game,
+#     # pol_grad_decoupled_game,
 #     ql_eps_greedy_true_avg_game,
 #     ql_eps_greedy_run_avg_game,
-#     ql_boltz_run_avg_game,
-#     ql_boltz_true_avg_game,
-#     ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
-#     ql_eps_greedy_decay_run_avg_decoupled_lr_correction_game,
-#     ql_eps_greedy_decay_run_avg_decoupled_game,
-#     ql_eps_greedy_decay_run_avg_game,
-#     ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
-#     ql_eps_greedy_decay_true_avg_game,
-#     ql_eps_greedy_run_avg_lr_decay_correction_game,
-#     ql_eps_greedy_run_avg_lr_decay_game,
-#     ql_eps_greedy_run_avg_lr_correction_game,
-#     ql_eps_greedy_run_avg_decoupled_lr_decay_correction_game,
-#     ql_eps_greedy_run_avg_decoupled_lr_correction_game,
-#     ql_eps_greedy_run_avg_decoupled_game,
+#     # ql_boltz_run_avg_game,
+#     # ql_boltz_true_avg_game,
+#     # ql_eps_greedy_decay_run_avg_decoupled_lr_decay_correction_game,
+#     # ql_eps_greedy_decay_run_avg_decoupled_lr_correction_game,
+#     # ql_eps_greedy_decay_run_avg_decoupled_game,
+#     # ql_eps_greedy_decay_run_avg_game,
+#     # ql_eps_greedy_decay_run_avg_lr_decay_correction_game,
+#     # ql_eps_greedy_decay_true_avg_game,
+#     # ql_eps_greedy_run_avg_lr_decay_correction_game,
+#     # ql_eps_greedy_run_avg_lr_decay_game,
+#     # ql_eps_greedy_run_avg_lr_correction_game,
+#     # ql_eps_greedy_run_avg_decoupled_lr_decay_correction_game,
+#     # ql_eps_greedy_run_avg_decoupled_lr_correction_game,
+#     # ql_eps_greedy_run_avg_decoupled_game,
 #     num_iters=100,
 # )
+# show_expected_coop_props(results)
+# show_percent_in_coop_eq(results)
+# plot_experiments(results)
