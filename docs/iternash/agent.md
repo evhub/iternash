@@ -69,7 +69,7 @@ Functions
     - _kwargs_ are passed to `Agent`.
 
     
-`hist_agent(name, record_var, maxhist=None, copy_func=<function deepcopy at 0x0000024E0AB94BF8>, initializer=(), **kwargs)`
+`hist_agent(name, record_var, maxhist=None, copy_func=<function deepcopy at 0x000001D538264BF8>, initializer=(), **kwargs)`
 :   Construct an agent that records a history.
     
     Parameters:
@@ -98,7 +98,7 @@ Functions
 Classes
 -------
 
-`Agent(name, actor, default=<object object at 0x0000024E257AF0B0>, period=1, extra_defaults={}, copy_func=None, debug=False)`
+`Agent(name, actor, default=<object object at 0x000001D552C7F0B0>, period=1, extra_defaults={}, copy_func=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -113,7 +113,7 @@ Classes
 
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object at 0x0000024E257AF0C0>, period=None, extra_defaults=None, copy_func=<object object at 0x0000024E257AF0C0>, debug=None)`
+    `clone(self, name=None, actor=None, default=<object object at 0x000001D552C7F0C0>, period=None, extra_defaults=None, copy_func=<object object at 0x000001D552C7F0C0>, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `get_defaults(self)`

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3a204243
+# __coconut_hash__ = 0x42af6622
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -423,8 +423,8 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
 def show_expected_coop_props(*games, **kwargs):
     """Print the expected proportion of cooperations for the given games."""
     exp_coop_props = dict(((g.name), (run_experiment(g, **kwargs)[1])) for g in games)
-    for name, result in exp_coop_props.items():
-        print("E[1/N sum[i] C[i] | {_coconut_format_0}] = {_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(result)))
+    for name, result in sorted(exp_coop_props.items(), key=_coconut.operator.itemgetter((1))):
+        print("E[1/(m-n) sum[i=n -> m] C[i] | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(result)))
 
 
 @_coconut_mark_as_match
@@ -459,7 +459,9 @@ if __name__ == "__main__":
 # from coconut import embed; embed()
 # plot_pcs(pol_grad_decoupled_game)
 # plot_qs_pcs_M(ql_eps_greedy_decay_run_avg_decoupled_game)
-# plot_experiments(
+# run_func = plot_experiments
+# run_func = show_expected_coop_props
+# run_func(
 #     pol_grad_game,
 #     pol_grad_decoupled_game,
 #     ql_eps_greedy_true_avg_game,
