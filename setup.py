@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8028c2a
+# __coconut_hash__ = 0x6309938f
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -943,7 +943,15 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_filter, _cocon
 
 # Compiled Coconut: -----------------------------------------------------------
 
+import os
+
 import setuptools
 
 
-setuptools.setup(name="iternash", version="0.3.4", description="Iterative Nash equilibrium finder for simulating continuous games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3",]})
+INSTALL_OLD_ITERNASH = os.environ.get("INSTALL_OLD_ITERNASH")
+
+if INSTALL_OLD_ITERNASH:
+    setuptools.setup(name="iternash", version="1.0.0", description="See https://pypi.org/project/itergame for new PyPI.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=[], install_requires=["itergame",])
+
+else:
+    setuptools.setup(name="itergame", version="0.1.0", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3",]})

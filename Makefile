@@ -20,7 +20,7 @@ setup:
 .PHONY: build
 build:
 	coconut setup.coco --no-tco --strict
-	coconut iternash-source iternash --no-tco --strict --jobs sys
+	coconut itergame-source itergame --no-tco --strict --jobs sys
 
 .PHONY: dev
 dev: build
@@ -32,18 +32,18 @@ install: build
 
 .PHONY: docs
 docs: dev
-	pdoc ./iternash -o ./docs --force
+	pdoc ./itergame -o ./docs --force
 
 .PHONY: run
 run: run-pd run-driver
 
 .PHONY: run-pd
 run-pd:
-	python ./iternash/examples/self_prisoner_dilemma.py
+	python ./itergame/examples/self_prisoner_dilemma.py
 
 .PHONY: run-driver
 run-driver:
-	python ./iternash/examples/absent_minded_driver.py
+	python ./itergame/examples/absent_minded_driver.py
 
 .PHONY: clean
 clean:
@@ -55,7 +55,7 @@ clean:
 
 .PHONY: wipe
 wipe: clean
-	rm -rf ./iternash ./setup.py ./docs
+	rm -rf ./itergame ./setup.py ./docs
 
 .PHONY: upload
 upload: wipe docs
@@ -63,6 +63,10 @@ upload: wipe docs
 	pip3 install -U --ignore-installed twine
 	twine upload dist/*
 
+.PHONY: upload-old
+upload-old: export INSTALL_OLD_ITERNASH=TRUE
+upload-old: upload
+
 .PHONY: watch
 watch: install
-	coconut iternash-source iternash --watch --no-tco --strict
+	coconut itergame-source itergame --watch --no-tco --strict

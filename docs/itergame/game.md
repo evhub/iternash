@@ -1,4 +1,4 @@
-Module iternash.game
+Module itergame.game
 ====================
 
 Classes

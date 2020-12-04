@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 
-from iternash.game import Game
-from iternash.agent import (
+from itergame.game import Game
+from itergame.agent import (
     agent,
     expr_agent,
     bbopt_agent,

@@ -1,11 +1,11 @@
 from math import log, exp, ceil
 
-from iternash.game import Game
-from iternash.agent import (
+from itergame.game import Game
+from itergame.agent import (
     agent,
     hist_agent,
 )
-from iternash.util import repeat
+from itergame.util import repeat
 
 import numpy as np
 from matplotlib import pyplot as plt

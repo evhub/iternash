@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6892dee2
+# __coconut_hash__ = 0x3e9ebf0c
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -31,12 +31,12 @@ from matplotlib import pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 
-from iternash.game import Game
-from iternash.agent import agent
-from iternash.agent import expr_agent
-from iternash.agent import bbopt_agent
-from iternash.agent import debug_agent
-from iternash.agent import human_agent
+from itergame.game import Game
+from itergame.agent import agent
+from itergame.agent import expr_agent
+from itergame.agent import bbopt_agent
+from itergame.agent import debug_agent
+from itergame.agent import human_agent
 
 
 common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_f=0)

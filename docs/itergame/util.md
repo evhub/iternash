@@ -1,4 +1,4 @@
-Module iternash.util
+Module itergame.util
 ====================
 
 Functions

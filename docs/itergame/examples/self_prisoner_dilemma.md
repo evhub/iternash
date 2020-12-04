@@ -1,4 +1,4 @@
-Module iternash.examples.self_prisoner_dilemma
+Module itergame.examples.self_prisoner_dilemma
 ==============================================
 
 Functions

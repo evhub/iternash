@@ -1,4 +1,4 @@
-Module iternash.examples.absent_minded_driver
+Module itergame.examples.absent_minded_driver
 =============================================
 
 Functions

@@ -1,25 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4a027f84
-
-# Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
-
-# Coconut Header: -------------------------------------------------------------
-
-from __future__ import print_function, absolute_import, unicode_literals, division
-import sys as _coconut_sys, os.path as _coconut_os_path
-_coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
-_coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cached_module.__file__) != _coconut_file_path:
-    del _coconut_sys.modules[str("__coconut__")]
-_coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import *
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
-if _coconut_sys.version_info >= (3,):
-    _coconut_sys.path.pop(0)
-
-# Compiled Coconut: -----------------------------------------------------------
-
 from pprint import pprint
 from collections import deque
 from copy import deepcopy
@@ -27,16 +5,13 @@ from copy import deepcopy
 from bbopt import BlackBoxOptimizer
 from bbopt.constants import default_alg
 
-from iternash.util import Str
-from iternash.util import printret
-from iternash.util import printerr
-from iternash.util import clean_env
+from itergame.util import Str, printret, printerr, clean_env
 
 
 no_default = object()
 _sentinel = object()
 
-class Agent(_coconut.object):
+class Agent:
     """Agent class.
 
     Parameters:
@@ -65,21 +40,29 @@ class Agent(_coconut.object):
             default = deepcopy(self.default)
         if copy_func is _sentinel:
             copy_func = deepcopy(self.copy_func)
-        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (self.debug if debug is None else debug))
+        return Agent(
+            name ?? self.name,
+            actor ?? deepcopy(self.actor),
+            default,
+            period ?? self.period,
+            extra_defaults ?? deepcopy(self.extra_defaults),
+            copy_func,
+            debug ?? self.debug,
+        )
 
     def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""
         try:
             result = self.actor(env, *args, **kwargs)
             if self.debug:
-                print("{_coconut_format_0}({_coconut_format_1}, *{_coconut_format_2}, **{_coconut_format_3}) = {_coconut_format_4}".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(args), _coconut_format_3=(kwargs), _coconut_format_4=(result)))
+                print(f"{self}({env}, *{args}, **{kwargs}) = {result}")
             return result
         except:
-            printerr("Error calculating action for {_coconut_format_0}({_coconut_format_1}, *{_coconut_format_2}, **{_coconut_format_3}):".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(args), _coconut_format_3=(kwargs)))
+            printerr(f"Error calculating action for {self}({env}, *{args}, **{kwargs}):")
             raise
 
-    def __repr__(self):
-        return "Agent({_coconut_format_0})".format(_coconut_format_0=(self.name))
+    def __repr__(self) =
+        f"Agent({self.name})"
 
     def get_defaults(self):
         """Get a dictionary of all default values to assign."""
@@ -112,16 +95,18 @@ def agent(name_or_agent_func=None, **kwargs):
             ...
     """
     if name_or_agent_func is None:
-        return _coconut.functools.partial(agent, **kwargs)
+        return agent$(**kwargs)
     elif isinstance(name_or_agent_func, Str):
-        return _coconut.functools.partial(Agent, name_or_agent_func, **kwargs)
+        return Agent$(name_or_agent_func, **kwargs)
     elif "name" in kwargs:
         return Agent(kwargs.pop("name"), name_or_agent_func, **kwargs)
     else:
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
-DEFAULT_EXPR_ALIASES = {"\n": ""}
+DEFAULT_EXPR_ALIASES = {
+    "\n": "",
+}
 
 def expr_agent(name, expr, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
@@ -139,7 +124,7 @@ def expr_agent(name, expr, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **k
     """
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    return Agent(name, _coconut.functools.partial(eval, expr, vars), **kwargs)
+    return Agent(name, eval$(expr, vars), **kwargs)
 
 
 def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
@@ -150,7 +135,7 @@ def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=e
     def human_actor(env):
         if pprint:
             pprint(clean_env(env))
-        expr = input("{_coconut_format_0} = ".format(_coconut_format_0=(name)))
+        expr = input(f"{name} = ")
         return expr_agent(expr, vars, aliases, eval)(env)
     return Agent(name, human_actor, **kwargs)
 
@@ -170,14 +155,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
     - _kwargs_ are passed to `Agent`.
     """
     def bbopt_actor(env):
-        _coconut_match_to = env
-        _coconut_match_check = False
-        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
-            _coconut_match_temp_0 = _coconut_match_to.get((name + "_bb"), _coconut_sentinel)
-            if _coconut_match_temp_0 is not _coconut_sentinel:
-                bb = _coconut_match_temp_0
-                _coconut_match_check = True
-        if _coconut_match_check:
+        match {=(name + "_bb"): bb, **_} in env:
             bb.maximize(util_func(env))
         else:
             bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
@@ -187,7 +165,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs)
     return Agent(name, bbopt_actor, **kwargs)
 
 
-def debug_agent(debug_str, name=None, **kwargs):
+def debug_agent(debug_str, name=None, **kwargs) =
     """Construct an agent that prints a formatted debug string.
 
     Example:
@@ -195,18 +173,18 @@ def debug_agent(debug_str, name=None, **kwargs):
             is roughly equivalent to
         Agent(None, env -> print("x = {x}".format(**env)))
     """
-    return Agent(name, lambda env: (printret)(debug_str.format(**env)), **kwargs)
+    Agent(name, env -> debug_str.format(**env) |> printret, **kwargs)
 
 
-def debug_all_agent(pretty=True, **kwargs):
+def debug_all_agent(pretty=True, **kwargs) =
     """Construct an agent that prints the entire env, prettily if _pretty_."""
     print_func = pprint if pretty else print
-    return Agent(None, lambda env: print_func(clean_env(env)), **kwargs)
+    Agent(None, env -> print_func(clean_env(env)), **kwargs)
 
 
-def init_agent(name, constant):
+def init_agent(name, constant) =
     """Construct an agent that just initializes name to the given constant."""
-    return Agent(name, lambda env: constant, default=constant, period=float("inf"))
+    Agent(name, env -> constant, default=constant, period=float("inf"))
 
 
 def hist_agent(name, record_var, maxhist=None, copy_func=deepcopy, initializer=(), **kwargs):
@@ -240,6 +218,6 @@ def iterator_agent(name, iterable, extra_defaults={}, **kwargs):
     it_name = name + "_it"
     extra_defaults[it_name] = iterable
     def iterator_actor(env):
-        env[it_name] = (iter)(env[it_name])
+        env[it_name] |>= iter
         return next(env[it_name])
     return Agent(name, iterator_actor, extra_defaults=extra_defaults, **kwargs)

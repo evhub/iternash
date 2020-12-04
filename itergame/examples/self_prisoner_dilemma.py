@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x83e347e1
+# __coconut_hash__ = 0xc8951135
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -24,10 +24,10 @@ from math import log
 from math import exp
 from math import ceil
 
-from iternash.game import Game
-from iternash.agent import agent
-from iternash.agent import hist_agent
-from iternash.util import repeat
+from itergame.game import Game
+from itergame.agent import agent
+from itergame.agent import hist_agent
+from itergame.util import repeat
 
 import numpy as np
 from matplotlib import pyplot as plt
