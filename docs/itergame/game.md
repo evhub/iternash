@@ -4,7 +4,7 @@ Module itergame.game
 Classes
 -------
 
-`Game(*_coconut_match_to_args, **_coconut_match_to_kwargs)`
+`Game(**_coconut_match_to_kwargs)`
 :   Game class.
     
     Parameters:

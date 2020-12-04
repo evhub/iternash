@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6309938f
+# __coconut_hash__ = 0xa042065f
 
 # Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
 
@@ -954,4 +954,4 @@ if INSTALL_OLD_ITERNASH:
     setuptools.setup(name="iternash", version="1.0.0", description="See https://pypi.org/project/itergame for new PyPI.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=[], install_requires=["itergame",])
 
 else:
-    setuptools.setup(name="itergame", version="0.1.0", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3",]})
+    setuptools.setup(name="itergame", version="0.1.0", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})

@@ -42,6 +42,7 @@ else:
             ],
             "dev": [
                 "pdoc3",
+                "Markdown",
             ],
         },
     )
