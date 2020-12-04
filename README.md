@@ -1,6 +1,6 @@
 # `itergame`
 
-`itergame` is an iterative Nash equilibrium finder for simulating continuous games in Python/[Coconut](http://coconut-lang.org/). `itergame` is built to make it as easy as possible to simulate and search for equilibria in any multi-agent game.
+`itergame` (previously `iternash`) is an iterative equilibrium finder for simulating arbitrary games in Python/[Coconut](http://coconut-lang.org/). `itergame` is built to make it as easy as possible to simulate and search for equilibria in any multi-agent game.
 
 ## Installation
 
