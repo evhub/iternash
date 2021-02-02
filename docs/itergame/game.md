@@ -44,6 +44,9 @@ Classes
     :   Run iterative action selection for _max_steps_ or
         until equilibrium is reached if _stop_at_equilibrium_.
 
+    `clone(self, *args, **kwargs)`
+    :   Equivalent to .copy().reset(*args, **kwargs).
+
     `copy(self)`
     :   Create a deep copy of the game.
 

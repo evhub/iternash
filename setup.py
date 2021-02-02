@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa042065f
+# __coconut_hash__ = 0xf54bb94e
 
-# Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -211,7 +211,7 @@ class _coconut(object):
         def NamedTuple(name, fields):
             return _coconut.collections.namedtuple(name, [x for x, t in fields])
     zip_longest = itertools.zip_longest if _coconut_sys.version_info >= (3,) else itertools.izip_longest
-    Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, property, range, reversed, set, slice, str, sum, tuple, type, zip, repr, bytearray = Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, property, range, reversed, set, slice, str, sum, tuple, type, zip, staticmethod(repr), bytearray
+    Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, tuple, type, zip, repr, bytearray = Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, tuple, type, zip, staticmethod(repr), bytearray
 _coconut_sentinel = _coconut.object()
 class MatchError(Exception):
     """Pattern-matching error. Has attributes .pattern, .value, and .message."""
@@ -451,7 +451,7 @@ class _coconut_parallel_concurrent_map_func_wrapper(object):
         try:
             return self.func(*args, **kwargs)
         except:
-            print(self.map_cls.__name__ + " error:")
+            _coconut.print(self.map_cls.__name__ + " error:")
             _coconut.traceback.print_exc()
             raise
         finally:
@@ -954,4 +954,4 @@ if INSTALL_OLD_ITERNASH:
     setuptools.setup(name="iternash", version="1.0.0", description="See https://pypi.org/project/itergame for new PyPI.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=[], install_requires=["itergame",])
 
 else:
-    setuptools.setup(name="itergame", version="0.1.0", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})
+    setuptools.setup(name="itergame", version="0.1.1", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["tqdm", "bbopt",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})

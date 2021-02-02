@@ -2,13 +2,31 @@
 clean-docs: clean docs
 
 .PHONY: all
-all: clean docs run
+all: clean-docs run
 
 .PHONY: all-pd
-all-pd: clean docs run-pd
+all-pd: clean-docs run-pd
 
 .PHONY: all-driver
-all-driver: clean docs run-driver
+all-driver: clean-docs run-driver
+
+.PHONY: all-logistic
+all-logistic: clean-docs run-logistic
+
+.PHONY: run
+run: run-pd run-driver run-logistic
+
+.PHONY: run-pd
+run-pd:
+	python ./itergame/examples/self_prisoner_dilemma.py
+
+.PHONY: run-driver
+run-driver:
+	python ./itergame/examples/absent_minded_driver.py
+
+.PHONY: run-logistic
+run-logistic:
+	python ./itergame/examples/logistic_success_curve.py
 
 .PHONY: test
 test: clean install run
@@ -33,17 +51,6 @@ install: build
 .PHONY: docs
 docs: dev
 	pdoc ./itergame -o ./docs --force
-
-.PHONY: run
-run: run-pd run-driver
-
-.PHONY: run-pd
-run-pd:
-	python ./itergame/examples/self_prisoner_dilemma.py
-
-.PHONY: run-driver
-run-driver:
-	python ./itergame/examples/absent_minded_driver.py
 
 .PHONY: clean
 clean:

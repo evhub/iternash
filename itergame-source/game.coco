@@ -72,6 +72,10 @@ class Game:
         """Create a deep copy with new agents."""
         return self.copy().add_agents(*agents, **named_agents)
 
+    def clone(self, *args, **kwargs):
+        """Equivalent to .copy().reset(*args, **kwargs)."""
+        return self.copy().reset(*args, **kwargs)
+
     def attach(self, agent, period, name=None):
         """Add an agent to be called at interval _period_."""
         if isinstance(agent, Agent):

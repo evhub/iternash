@@ -1,0 +1,141 @@
+import math
+from pprint import pprint
+
+from scipy import stats
+from matplotlib import pyplot as plt
+
+from itergame.game import Game
+from itergame.agent import (
+    agent,
+    bbopt_agent,
+    debug_agent,
+)
+
+
+# default values of all the parameters
+default_params = dict(
+    beta_N=10,
+    beta_D=10,
+    beta_mu=6,
+    norm_mu=6,
+    norm_sd=2,
+    logistic_loc=5,
+    logistic_scale=1,
+    d_min=0,
+    d_max=10,
+    improvement=0.5,
+)
+
+
+# probability of difficulty using beta distribution
+@agent(name="p_d")
+def beta_p_d_agent(env):
+    N = env["beta_N"]
+    D = env["beta_D"]
+    mu = env["beta_mu"]
+    a = N * mu/D
+    b = N - mu
+    d = env["d"]
+    return stats.beta.pdf(d, a, b, 0, D)
+
+
+# probability of difficulty using normal distribution
+@agent(name="p_d")
+def norm_p_d_agent(env):
+    mu = env["norm_mu"]
+    sd = env["norm_sd"]
+    d = env["d"]
+    return stats.norm.pdf(d, mu, sd)
+
+
+def sigma(x, m, w):
+    return 1/(1 + math.exp(-(x - m)/w))
+
+
+# probability of success using logistic distribution
+@agent(name="p_s_given_d")
+def p_s_given_d_agent(env):
+    loc = env["logistic_loc"]
+    scale = env["logistic_scale"]
+    d = env["d"]
+    return 1 - sigma(d, loc, scale)
+
+
+# probability of success using logistic distribution after intervention
+@agent(name="p_s_given_d_post")
+def p_s_given_d_post_agent(env):
+    loc = env["logistic_loc"]
+    scale = env["logistic_scale"]
+    improvement = env["improvement"]
+    d = env["d"]
+    return 1 - sigma(d - improvement, loc, scale)
+
+
+# increase in the probability of success
+@agent(name="p_s_inc")
+def p_s_inc_agent(env):
+    p_d = env["p_d"]
+    p_s_given_d = env["p_s_given_d"]
+    p_s_given_d_post = env["p_s_given_d_post"]
+    return (p_s_given_d_post - p_s_given_d) * p_d
+
+
+# black-box-optimized d agent that attempts to maximize p_s_inc
+bbopt_d_agent = bbopt_agent(
+    name="d",
+    tunable_actor=(bb, env) -> bb.uniform("d", env["d_min"], env["d_max"]),
+    util_func=.["p_s_inc"],
+    file=__file__,
+)
+
+
+# debugger that periodically prints relevant info
+periodic_debugger = debug_agent("\nd = {d}; P(d) = {p_d}; P(s|d) = {p_s_given_d}; increase in P(s|d) = {p_s_inc}", period=100)
+
+
+# black-box-optimized d game with beta distributed d
+beta_d_game = Game(
+    "beta_d",
+    bbopt_d_agent,
+    beta_p_d_agent,
+    p_s_given_d_agent,
+    p_s_given_d_post_agent,
+    p_s_inc_agent,
+    periodic_debugger,
+    **default_params,
+)
+
+
+# black-box-optimized d game with normally distributed d
+norm_d_game = Game(
+    "norm_d",
+    bbopt_d_agent,
+    norm_p_d_agent,
+    p_s_given_d_agent,
+    p_s_given_d_post_agent,
+    p_s_inc_agent,
+    periodic_debugger,
+    **default_params,
+)
+
+
+def run_game(game, num_steps=500, **params):
+    param_repr = params.items() |> sorted |> list |> str
+    print(f"Running {game.name} with {param_repr}...")
+    env = game.clone(
+        name=f"{game.name}[{param_repr}]",
+        **params,
+    ).run(
+        max_steps=num_steps,
+        stop_at_equilibrium=True,
+    )
+    pprint(env)
+    return env["d"]
+
+
+if __name__ == "__main__":
+    mus = range(10)
+    ds = [run_game(norm_d_game, norm_mu=mu) for mu in mus]
+
+    # plt.plot(mus, ds)
+    # plt.show()

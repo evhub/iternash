@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf8506c3d
+# __coconut_hash__ = 0x3c9e01fa
 
-# Compiled with Coconut version 1.4.3-post_dev57 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -120,6 +120,10 @@ class Game(_coconut.object):
     def copy_with_agents(self, *agents, **named_agents):
         """Create a deep copy with new agents."""
         return self.copy().add_agents(*agents, **named_agents)
+
+    def clone(self, *args, **kwargs):
+        """Equivalent to .copy().reset(*args, **kwargs)."""
+        return self.copy().reset(*args, **kwargs)
 
     def attach(self, agent, period, name=None):
         """Add an agent to be called at interval _period_."""
