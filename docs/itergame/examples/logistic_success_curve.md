@@ -10,4 +10,4 @@ Functions
 
     
 `sigma(x, m, w)`
-:
+:   The logistic function.

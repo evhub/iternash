@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x18c127ad
+# __coconut_hash__ = 0x71232a17
 
 # Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
@@ -58,6 +58,7 @@ def norm_p_d_agent(env):
 
 
 def sigma(x, m, w):
+    """The logistic function."""
     return 1 / (1 + math.exp(-(x - m) / w))
 
 

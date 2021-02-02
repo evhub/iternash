@@ -49,6 +49,7 @@ def norm_p_d_agent(env):
 
 
 def sigma(x, m, w):
+    """The logistic function."""
     return 1/(1 + math.exp(-(x - m)/w))
 
 
