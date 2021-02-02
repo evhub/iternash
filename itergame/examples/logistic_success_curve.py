@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xdc6847b2
+# __coconut_hash__ = 0x18c127ad
 
 # Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
@@ -106,6 +106,7 @@ norm_d_game = Game("norm_d", bbopt_d_agent, norm_p_d_agent, p_s_given_d_agent, p
 
 
 def run_game(game, num_steps=500, **params):
+    """Run the given game with the given parameters."""
     param_repr = (str)((list)((sorted)(params.items())))
     print("Running {_coconut_format_0} with {_coconut_format_1}...".format(_coconut_format_0=(game.name), _coconut_format_1=(param_repr)))
     env = game.clone(name="{_coconut_format_0}[{_coconut_format_1}]".format(_coconut_format_0=(game.name), _coconut_format_1=(param_repr)), **params).run(max_steps=num_steps, stop_at_equilibrium=True)
@@ -114,6 +115,8 @@ def run_game(game, num_steps=500, **params):
 
 
 if __name__ == "__main__":
+    run_game(beta_d_game)
+
     mus = range(10)
     ds = [run_game(norm_d_game, norm_mu=mu) for mu in mus]
 

@@ -120,6 +120,7 @@ norm_d_game = Game(
 
 
 def run_game(game, num_steps=500, **params):
+    """Run the given game with the given parameters."""
     param_repr = params.items() |> sorted |> list |> str
     print(f"Running {game.name} with {param_repr}...")
     env = game.clone(
@@ -134,6 +135,8 @@ def run_game(game, num_steps=500, **params):
 
 
 if __name__ == "__main__":
+    run_game(beta_d_game)
+
     mus = range(10)
     ds = [run_game(norm_d_game, norm_mu=mu) for mu in mus]
 
