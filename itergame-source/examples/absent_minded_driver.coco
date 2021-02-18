@@ -32,13 +32,16 @@ common_params = dict(
     r_n=0,
     # utility for defecting during deployment
     r_m=1,
-    # utility per remaining deployment episode if defect during deployment
-    r_rem_m=0,
     # utility for never defecting
     r_f=0,
+    # utility per remaining deployment episode if defect during deployment
+    r_rem_m=0,
+    # utility for each expected defection in deployment
+    r_per=0,
 )
 
 
+# parameters for the stock absent-minded driver game
 stock_params = dict(
     d=1,
     m=3,
@@ -46,8 +49,9 @@ stock_params = dict(
     p_mod=1,
     r_n=1,
     r_m=0,
-    r_rem_m=1,
     r_f=0,
+    r_rem_m=0,
+    r_per=1,
 )
 
 
@@ -90,6 +94,7 @@ ER_agent = expr_agent(
         PC * r_m
         + (1-PC) * r_f
         + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
+        + m * (1 - p) * r_per
     )
     """,
 )

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbabd6b79
+# __coconut_hash__ = 0xe8348f9b
 
 # Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
@@ -40,10 +40,11 @@ from itergame.agent import debug_agent
 from itergame.agent import human_agent
 
 
-common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_rem_m=0, r_f=0)
+common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_f=0, r_rem_m=0, r_per=0)
 
 
-stock_params = dict(d=1, m=3, n=2, p_mod=1, r_n=1, r_m=0, r_rem_m=1, r_f=0)
+# parameters for the stock absent-minded driver game
+stock_params = dict(d=1, m=3, n=2, p_mod=1, r_n=1, r_m=0, r_f=0, r_rem_m=0, r_per=1)
 
 
 # optimal training episodes in the one defection game
@@ -71,6 +72,7 @@ ER_agent = expr_agent(name="ER", expr="""
         PC * r_m
         + (1-PC) * r_f
         + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
+        + m * (1 - p) * r_per
     )
     """)
 
@@ -215,31 +217,25 @@ if __name__ == "__main__":
     pprint(stock_env)
     print("optimal pd = {_coconut_format_0})".format(_coconut_format_0=(1 - stock_env['p'])))
 
-    stock_pds = np.linspace(0, 1, num=100)
-    stock_ERs = [run_stock_game(1 - pd) for pd in stock_pds]
-    plt.plot(stock_pds, stock_ERs)
-    plt.show()
+# stock_pds = np.linspace(0, 1, num=100)
+# stock_ERs = [run_stock_game(1 - pd) for pd in stock_pds]
+# plt.plot(stock_pds, stock_ERs)
+# plt.show()
 
-# print("\nRunning baseline game...")
-# baseline_env = baseline_game.run()
-# pprint(baseline_env)
+    print("\nRunning baseline game...")
+    baseline_env = baseline_game.run()
+    pprint(baseline_env)
 
-# ds = range(1, 5)
-# nonseq_PCs = [baseline_env["PC"]] + [run_nonseq_game(d) for d in ds[1:]]
-# seq_PCs = [baseline_env["PC"]] + [run_seq_game(d) for d in ds[1:]]
+    ds = range(1, 5)
+    nonseq_PCs = [baseline_env["PC"]] + [run_nonseq_game(d) for d in ds[1:]]
+    seq_PCs = [baseline_env["PC"]] + [run_seq_game(d) for d in ds[1:]]
 
-# eps, m = common_params["eps"], common_params["m"]
-# nonseq_logys = [
-#     log(PC / eps**d)
-#     for d, PC in zip(ds, nonseq_PCs)
-# ]
-# seq_logys = [
-#     log(PC / (eps**d / m**(d-1)))
-#     for d, PC in zip(ds, seq_PCs)
-# ]
+    eps, m = common_params["eps"], common_params["m"]
+    nonseq_logys = [log(PC / eps**d) for d, PC in zip(ds, nonseq_PCs)]
+    seq_logys = [log(PC / (eps**d / m**(d - 1))) for d, PC in zip(ds, seq_PCs)]
 
-# print_logregress(ds, nonseq_logys, yname="PC_nonseq / eps**d")
-# print_logregress(ds, seq_logys, yname="PC_seq / (eps**d / m**(d-1))")
+    print_logregress(ds, nonseq_logys, yname="PC_nonseq / eps**d")
+    print_logregress(ds, seq_logys, yname="PC_seq / (eps**d / m**(d-1))")
 
 # fig, axs = plt.subplots(2, 2)
 
