@@ -1,6 +1,7 @@
 from math import log, exp
 from pprint import pprint
 
+import numpy as np
 from scipy.stats import linregress
 from scipy.special import comb
 from mpmath import hyp2f1
@@ -31,7 +32,21 @@ common_params = dict(
     r_n=0,
     # utility for defecting during deployment
     r_m=1,
+    # utility per remaining deployment episode if defect during deployment
+    r_rem_m=0,
     # utility for never defecting
+    r_f=0,
+)
+
+
+stock_params = dict(
+    d=1,
+    m=3,
+    n=2,
+    p_mod=1,
+    r_n=1,
+    r_m=0,
+    r_rem_m=1,
     r_f=0,
 )
 
@@ -44,7 +59,7 @@ baseline_n_agent = expr_agent(
 )
 
 
-# optimal defection probability in the one defection game
+# optimal cooperation probability in the one defection game
 baseline_p_agent = expr_agent(
     name="p",
     expr="""(
@@ -65,6 +80,8 @@ baseline_PC_agent = expr_agent(
 
 
 # generic expected reward calculator
+# sum[i=0 -> m-1] p**i * (1-p) * r * (m - i)
+# = r * (m - p*(p**m - 1)/(p - 1))
 ER_agent = expr_agent(
     name="ER",
     expr="""
@@ -72,6 +89,7 @@ ER_agent = expr_agent(
     + (p + (1-p)*(1-p_mod))**n * (
         PC * r_m
         + (1-PC) * r_f
+        + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
     )
     """,
 )
@@ -113,13 +131,21 @@ seq_d_PC_agent = expr_agent(
 )
 
 
-# black-box-optimized p agent that attempts to maximize ER
-bbopt_p_agent = bbopt_agent(
+# black-box-optimized p agents that attempts to maximize ER
+bbopt_loguniform_p_agent = bbopt_agent(
     name="p",
     tunable_actor=(bb, env) -> 1 - bb.loguniform("p", 0.00001, 1),
     util_func=.["ER"],
     file=__file__,
     default=0.9,
+)
+
+bbopt_uniform_p_agent = bbopt_agent(
+    name="p",
+    tunable_actor=(bb, env) -> bb.uniform("p", 0, 1),
+    util_func=.["ER"],
+    file=__file__,
+    default=0.5,
 )
 
 
@@ -152,6 +178,32 @@ seq_d_PC_guess = expr_agent(
 periodic_debugger = debug_agent("n = {n}; p = {p}; PC = {PC}; ER = {ER}", period=100)
 
 
+# stock absent-minded driver games
+stock_bbopt_p_game = Game(
+    "stock",
+    bbopt_uniform_p_agent,
+    baseline_PC_agent,
+    ER_agent,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=100,
+    ),
+    **stock_params,
+)
+
+stock_fixed_p_game = Game(
+    "stock",
+    baseline_PC_agent,
+    ER_agent,
+    default_run_kwargs=dict(
+        stop_at_equilibrium=True,
+        max_steps=100,
+        use_tqdm=False,
+    ),
+    **stock_params,
+)
+
+
 # absent-minded driver game where catastrophe occurs on the first defection
 baseline_game = Game(
     "baseline",
@@ -173,7 +225,7 @@ baseline_game = Game(
 conservative_nonseq_d_game = Game(
     "conservative_nonseq_d",
     baseline_n_agent,
-    bbopt_p_agent,
+    bbopt_loguniform_p_agent,
     nonseq_d_PC_agent,
     ER_agent,
     nonseq_d_PC_guess,
@@ -192,7 +244,7 @@ conservative_nonseq_d_game = Game(
 conservative_seq_d_game = Game(
     "conservative_seq_d",
     baseline_n_agent,
-    bbopt_p_agent,
+    bbopt_loguniform_p_agent,
     seq_d_PC_agent,
     ER_agent,
     seq_d_PC_guess,
@@ -234,10 +286,20 @@ test_game = Game(
 )
 
 
+def run_stock_game(p):
+    """Run stock game with the given p."""
+    p_str = str(p).replace(".", "_")
+    env = stock_fixed_p_game.clone(
+        name=f"stock_p_{p_str}_game",
+        p=p,
+    ).run()
+    return env["ER"]
+
+
 def run_nonseq_game(d):
     """Run non-sequential d defection game and measure PC."""
     print(f"\nRunning conservative non-sequential {d} defection game...")
-    env = conservative_nonseq_d_game.reset(
+    env = conservative_nonseq_d_game.clone(
         name=f"conservative_nonseq_d{d}_game",
         d=d,
     ).run()
@@ -248,7 +310,7 @@ def run_nonseq_game(d):
 def run_seq_game(d):
     """Run sequential d defection game and measure PC."""
     print(f"\nRunning conservative sequential {d} defection game...")
-    env = conservative_seq_d_game.reset(
+    env = conservative_seq_d_game.clone(
         name=f"conservative_seq_d{d}_game",
         d=d,
     ).run()
@@ -284,6 +346,16 @@ def print_logregress(ds, logys, yname="y"):
 
 
 if __name__ == "__main__":
+    print("\nRunning stock game...")
+    stock_env = stock_bbopt_p_game.run()
+    pprint(stock_env)
+    print(f"optimal pd = {1 - stock_env['p']})")
+
+    # stock_pds = np.linspace(0, 1, num=100)
+    # stock_ERs = [run_stock_game(1 - pd) for pd in stock_pds]
+    # plt.plot(stock_pds, stock_ERs)
+    # plt.show()
+
     print("\nRunning baseline game...")
     baseline_env = baseline_game.run()
     pprint(baseline_env)

@@ -15,3 +15,7 @@ Functions
     
 `run_seq_game(d)`
 :   Run sequential d defection game and measure PC.
+
+    
+`run_stock_game(p)`
+:   Run stock game with the given p.
