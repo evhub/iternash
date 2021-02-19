@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe8348f9b
+# __coconut_hash__ = 0xd3116012
 
 # Compiled with Coconut version 1.4.3-post_dev66 [Ernest Scribbler]
 
@@ -40,11 +40,11 @@ from itergame.agent import debug_agent
 from itergame.agent import human_agent
 
 
-common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_f=0, r_rem_m=0, r_per=0)
+common_params = dict(d=1, m=100, eps=0.01, p_mod=1.0, r_n=0, r_m=1, r_f=0, r_rem_m=0, r_per_m=0)
 
 
 # parameters for the stock absent-minded driver game
-stock_params = dict(d=1, m=3, n=2, p_mod=1, r_n=1, r_m=0, r_f=0, r_rem_m=0, r_per=1)
+stock_params = dict(d=1, m=1, n=1, p_mod=1, r_n=0, r_m=4, r_f=1, r_rem_m=0, r_per_m=0)
 
 
 # optimal training episodes in the one defection game
@@ -72,7 +72,7 @@ ER_agent = expr_agent(name="ER", expr="""
         PC * r_m
         + (1-PC) * r_f
         + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
-        + m * (1 - p) * r_per
+        + m * (1 - p) * r_per_m
     )
     """)
 
