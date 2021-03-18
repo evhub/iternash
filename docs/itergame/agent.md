@@ -26,7 +26,7 @@ Functions
             ...
 
     
-`bbopt_agent(name, tunable_actor, util_func, file, alg='tree_structured_parzen_estimator', **kwargs)`
+`bbopt_agent(name, tunable_actor, util_func, file, alg=<object object>, **kwargs)`
 :   Construct an agent that selects its action using a black box optimizer.
     
     Parameters:

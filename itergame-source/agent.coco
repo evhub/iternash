@@ -3,7 +3,6 @@ from collections import deque
 from copy import deepcopy
 
 from bbopt import BlackBoxOptimizer
-from bbopt.constants import default_alg
 
 from itergame.util import Str, printret, printerr, clean_env
 
@@ -140,7 +139,7 @@ def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=e
     return Agent(name, human_actor, **kwargs)
 
 
-def bbopt_agent(name, tunable_actor, util_func, file, alg=default_alg, **kwargs):
+def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, **kwargs):
     """Construct an agent that selects its action using a black box optimizer.
 
     Parameters:
