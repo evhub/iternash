@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x85e27f1e
+# __coconut_hash__ = 0x36f96a1a
 
-# Compiled with Coconut version 1.5.0-post_dev12 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev21 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -32,9 +32,6 @@ from itergame.util import printerr
 from itergame.util import clean_env
 
 
-no_default = object()
-_sentinel = object()
-
 class Agent(_coconut.object):
     """Agent class.
 
@@ -48,8 +45,10 @@ class Agent(_coconut.object):
     - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
     """
+    NO_DEFAULT = object()
+    _sentinel = object()
 
-    def __init__(self, name, actor, default=no_default, period=1, extra_defaults={}, copy_func=None, debug=False):
+    def __init__(self, name, actor, default=NO_DEFAULT, period=1, extra_defaults={}, copy_func=None, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
@@ -60,9 +59,9 @@ class Agent(_coconut.object):
 
     def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
-        if default is _sentinel:
+        if default is self._sentinel:
             default = deepcopy(self.default)
-        if copy_func is _sentinel:
+        if copy_func is self._sentinel:
             copy_func = deepcopy(self.copy_func)
         return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (self.debug if debug is None else debug))
 
@@ -83,7 +82,7 @@ class Agent(_coconut.object):
     def get_defaults(self):
         """Get a dictionary of all default values to assign."""
         defaults = {}
-        if self.default is not no_default:
+        if self.default is not self.NO_DEFAULT:
             defaults[self.name] = deepcopy(self.default)
         for name, val in self.extra_defaults.items():
             defaults[name] = deepcopy(val)
@@ -122,26 +121,30 @@ def agent(name_or_agent_func=None, **kwargs):
 
 DEFAULT_EXPR_ALIASES = {"\n": ""}
 
-def expr_agent(name, expr, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
+def expr_agent(name, expr, globs=None, aliases=None, eval=eval, **kwargs):
     """Construct an agent that computes its action by evaluating an expression.
 
     Parameters:
     - _name_ is the name the agent's action will be assigned in the environment.
     - _expr_ is an expression to be evaluated in the environment to determine the
         agent's action.
-    - _vars_ are the globals to be used for evaluating the agent's action.
+    - _globs_ are the globals to be used for evaluating the agent's action.
     - _aliases_ are simple replacements to be made to the expr before evaluating it
-        (the default is {"\\n": "", "^": "**"}).
+        (the default is {"\\n": ""}).
     - _eval_ is the eval function to use (defaults to Python eval, but can be set to
         coconut.convenience.coconut_eval instead to use Coconut eval).
     - _kwargs_ are passed to `Agent`.
     """
+    if globs is None:
+        globs = {}
+    if aliases is None:
+        aliases = DEFAULT_EXPR_ALIASES
     for k, v in aliases.items():
         expr = expr.replace(k, v)
-    return Agent(name, _coconut.functools.partial(eval, expr, vars), **kwargs)
+    return Agent(name, _coconut.functools.partial(eval, expr, globs), **kwargs)
 
 
-def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=eval, **kwargs):
+def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs):
     """Construct an agent that prompts a human for an expression as in expr_agent.
 
     Parameters are as per expr_agent plus _pprint_ which determines whether to
@@ -150,7 +153,7 @@ def human_agent(name, pprint=True, vars={}, aliases=DEFAULT_EXPR_ALIASES, eval=e
         if pprint:
             pprint(clean_env(env))
         expr = input("{_coconut_format_0} = ".format(_coconut_format_0=(name)))
-        return expr_agent(expr, vars, aliases, eval)(env)
+        return expr_agent(expr, globs, aliases, eval)(env)
     return Agent(name, human_actor, **kwargs)
 
 
@@ -162,7 +165,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
     - _tunable_actor_ is a function from (bb, env) to an action (see the BBopt docs
         for how to use the bb object to define tunable parameters).
     - _util_func_ is the a function from the env resulting from the agent's action
-        to the utility it should get for that action.
+        to the utility it should get for that action (or just a variable name).
     - _file_ should be set to __file__.
     - _alg_ determines the black box optimization algorithm to use (the default
         is tree_structured_parzen_estimator).
@@ -177,7 +180,11 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
                 bb = _coconut_match_temp_0
                 _coconut_match_check = True
         if _coconut_match_check:
-            bb.maximize(util_func(env))
+            if isinstance(util_func, Str):
+                util = env[util_func]
+            else:
+                util = util_func(env)
+            bb.maximize(util)
         else:
             bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
             env[name + "_bb"] = bb

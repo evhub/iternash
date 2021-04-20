@@ -22,15 +22,15 @@ if INSTALL_OLD_ITERNASH:
 else:
     setuptools.setup(
         name="itergame",
-        version="0.1.1",
+        version="0.1.2",
         description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.",
         url="https://github.com/evhub/iternash",
         author="Evan Hubinger",
         author_email="evanjhub@gmail.com",
         packages=setuptools.find_packages(),
         install_requires=[
+            "bbopt>=1.1.19",
             "tqdm",
-            "bbopt",
         ],
         extras_require={
             "examples": [

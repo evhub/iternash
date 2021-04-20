@@ -2,8 +2,14 @@ from copy import deepcopy
 
 from tqdm import tqdm
 
-from itergame.util import Str, clean_env
-from itergame.agent import Agent, init_agent
+from itergame.util import (
+    Str,
+    clean_env,
+)
+from itergame.agent import (
+    Agent,
+    init_agent,
+)
 
 
 class Game:

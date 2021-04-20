@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x736bd299
+# __coconut_hash__ = 0x791c9468
 
-# Compiled with Coconut version 1.5.0-post_dev12 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev21 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -99,7 +99,7 @@ def exact_seq_d_PC_agent(env):
     for i in range(1, int(m / d) + 1):
         PC += expr_agent(None, """
         (-1)**(i+1) * (1-p + p*(m-i*d+1)/i) * comb(m-i*d, i-1) * (1-p)**(i*d) * p**(i-1)
-        """, vars={"i": i, "comb": comb})(env)
+        """, globs={"i": i, "comb": comb})(env)
     return PC
 
 seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", default=0.1)
@@ -112,7 +112,7 @@ bbopt_uniform_p_agent = bbopt_agent(name="p", tunable_actor=lambda bb, env: bb.u
 
 
 # black-box-optimized n agent that attempts to set PC to eps
-bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)), util_func=expr_agent(None, "-abs(log(PC) - log(eps))", vars={"log": log}), file=__file__, default=common_params["m"])
+bbopt_n_agent = bbopt_agent(name="n", tunable_actor=lambda bb, env: int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)), util_func=expr_agent(None, "-abs(log(PC) - log(eps))", globs={"log": log}), file=__file__, default=common_params["m"])
 
 
 # empirical formula for PC in the conservative nonseq d game

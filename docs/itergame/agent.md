@@ -34,7 +34,7 @@ Functions
     - _tunable_actor_ is a function from (bb, env) to an action (see the BBopt docs
         for how to use the bb object to define tunable parameters).
     - _util_func_ is the a function from the env resulting from the agent's action
-        to the utility it should get for that action.
+        to the utility it should get for that action (or just a variable name).
     - _file_ should be set to __file__.
     - _alg_ determines the black box optimization algorithm to use (the default
         is tree_structured_parzen_estimator).
@@ -54,16 +54,16 @@ Functions
 :   Construct an agent that prints the entire env, prettily if _pretty_.
 
     
-`expr_agent(name, expr, vars={}, aliases={'\n': ''}, eval=<built-in function eval>, **kwargs)`
+`expr_agent(name, expr, globs=None, aliases=None, eval=<built-in function eval>, **kwargs)`
 :   Construct an agent that computes its action by evaluating an expression.
     
     Parameters:
     - _name_ is the name the agent's action will be assigned in the environment.
     - _expr_ is an expression to be evaluated in the environment to determine the
         agent's action.
-    - _vars_ are the globals to be used for evaluating the agent's action.
+    - _globs_ are the globals to be used for evaluating the agent's action.
     - _aliases_ are simple replacements to be made to the expr before evaluating it
-        (the default is {"\n": "", "^": "**"}).
+        (the default is {"\n": ""}).
     - _eval_ is the eval function to use (defaults to Python eval, but can be set to
         coconut.convenience.coconut_eval instead to use Coconut eval).
     - _kwargs_ are passed to `Agent`.
@@ -80,7 +80,7 @@ Functions
     - _kwargs_ are passed to Agent.
 
     
-`human_agent(name, pprint=True, vars={}, aliases={'\n': ''}, eval=<built-in function eval>, **kwargs)`
+`human_agent(name, pprint=True, globs=None, aliases=None, eval=<built-in function eval>, **kwargs)`
 :   Construct an agent that prompts a human for an expression as in expr_agent.
     
     Parameters are as per expr_agent plus _pprint_ which determines whether to
@@ -110,6 +110,11 @@ Classes
     - _extra_defaults_ are extra variables that need to be given defaults.
     - _copy_func_ determines the function used to copy the agent's action (default is identity).
     - _debug_ controls whether the agent should print what it's doing.
+
+    ### Class variables
+
+    `NO_DEFAULT`
+    :
 
     ### Methods
 

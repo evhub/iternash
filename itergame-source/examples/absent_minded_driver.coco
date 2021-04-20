@@ -126,7 +126,7 @@ def exact_seq_d_PC_agent(env):
     for i in range(1, int(m/d) + 1):
         PC += expr_agent(None, """
         (-1)**(i+1) * (1-p + p*(m-i*d+1)/i) * comb(m-i*d, i-1) * (1-p)**(i*d) * p**(i-1)
-        """, vars={"i": i, "comb": comb})(env)
+        """, globs={"i": i, "comb": comb})(env)
     return PC
 
 seq_d_PC_agent = expr_agent(
@@ -159,7 +159,7 @@ bbopt_n_agent = bbopt_agent(
     name="n",
     tunable_actor=(bb, env) ->
         int(baseline_n_agent(env) * bb.loguniform("n/n_c", 0.001, 1000)),
-    util_func=expr_agent(None, "-abs(log(PC) - log(eps))", vars={"log": log}),
+    util_func=expr_agent(None, "-abs(log(PC) - log(eps))", globs={"log": log}),
     file=__file__,
     default=common_params["m"],
 )
