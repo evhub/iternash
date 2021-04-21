@@ -40,6 +40,11 @@ build:
 	coconut setup.coco --no-tco --strict
 	coconut itergame-source itergame --no-tco --strict --jobs sys
 
+.PHONY: force-build
+force-build:
+	coconut setup.coco --no-tco --strict --force
+	coconut itergame-source itergame --no-tco --strict --jobs sys --force
+
 .PHONY: dev
 dev: build
 	pip install -Ue .[examples,dev]

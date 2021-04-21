@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xac0ad104
+# __coconut_hash__ = 0x8e27bafe
 
-# Compiled with Coconut version 1.5.0-post_dev21 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -102,9 +102,11 @@ if _coconut_sys.version_info < (3,):
     @_coconut_wraps(_coconut_py_print)
     def print(*args, **kwargs):
         file = kwargs.get("file", _coconut_sys.stdout)
-        flush = kwargs.get("flush", False)
         if "flush" in kwargs:
+            flush = kwargs["flush"]
             del kwargs["flush"]
+        else:
+            flush = False
         if _coconut.getattr(file, "encoding", None) is not None:
             _coconut_py_print(*(_coconut_py_unicode(x).encode(file.encoding) for x in args), **kwargs)
         else:
@@ -211,7 +213,7 @@ class _coconut(object):
         def NamedTuple(name, fields):
             return _coconut.collections.namedtuple(name, [x for x, t in fields])
     zip_longest = itertools.zip_longest if _coconut_sys.version_info >= (3,) else itertools.izip_longest
-    Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, tuple, type, zip, repr, bytearray = Ellipsis, NotImplemented, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, tuple, type, zip, staticmethod(repr), bytearray
+    Ellipsis, NotImplemented, NotImplementedError, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, RuntimeError, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, super, tuple, type, vars, zip, repr, bytearray = Ellipsis, NotImplemented, NotImplementedError, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, RuntimeError, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, super, tuple, type, vars, zip, staticmethod(repr), bytearray
 _coconut_sentinel = _coconut.object()
 class MatchError(Exception):
     """Pattern-matching error. Has attributes .pattern, .value, and .message."""
@@ -315,7 +317,7 @@ def _coconut_minus(a, *rest):
 def tee(iterable, n=2):
     if n >= 0 and _coconut.isinstance(iterable, (_coconut.tuple, _coconut.frozenset)):
         return (iterable,) * n
-    if n > 0 and (_coconut.isinstance(iterable, _coconut.abc.Sequence) or _coconut.getattr(iterable, "__copy__", _coconut.NotImplemented) is not _coconut.NotImplemented):
+    if n > 0 and (_coconut.isinstance(iterable, _coconut.abc.Sequence) or _coconut.getattr(iterable, "__copy__", None) is not None):
         return (iterable,) + _coconut.tuple(_coconut.copy.copy(iterable) for _ in _coconut.range(n - 1))
     return _coconut.itertools.tee(iterable, n)
 class reiterable(object):
@@ -920,9 +922,15 @@ def datamaker(*args, **kwargs):
 def fmap(func, obj):
     """fmap(func, obj) creates a copy of obj with func applied to its contents.
     Override by defining obj.__fmap__(func)."""
-    obj_fmap = _coconut.getattr(obj, "__fmap__", _coconut.NotImplemented)
-    if obj_fmap is not _coconut.NotImplemented:
-        return obj_fmap(func)
+    obj_fmap = _coconut.getattr(obj, "__fmap__", None)
+    if obj_fmap is not None:
+        try:
+            result = obj_fmap(func)
+        except _coconut.NotImplementedError:
+            pass
+        else:
+            if result is not _coconut.NotImplemented:
+                return result
     if obj.__class__.__module__ == "numpy":
         from numpy import vectorize
         return vectorize(func)(obj)
@@ -931,6 +939,25 @@ def memoize(maxsize=None, *args, **kwargs):
     """Decorator that memoizes a function,
     preventing it from being recomputed if it is called multiple times with the same arguments."""
     return _coconut.functools.lru_cache(maxsize, *args, **kwargs)
+def _coconut_call_set_names(cls):
+    if _coconut_sys.version_info < (3, 6):
+        for k, v in _coconut.vars(cls).items():
+            set_name = _coconut.getattr(v, "__set_name__", None)
+            if set_name is not None:
+                set_name(cls, k)
+class override(object):
+    def __init__(self, func):
+        self.func = func
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self.func
+        if _coconut_sys.version_info >= (3,):
+            return _coconut.types.MethodType(self.func, obj)
+        else:
+            return _coconut.types.MethodType(self.func, obj, objtype)
+    def __set_name__(self, obj, name):
+        if not _coconut.hasattr(_coconut.super(obj, obj), name):
+            raise _coconut.RuntimeError(obj.__name__ + "." + name + " marked with @override but not overriding anything")
 _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_filter, _coconut_makedata, _coconut_map, _coconut_reiterable, _coconut_reversed, _coconut_starmap, _coconut_tee, _coconut_zip, TYPE_CHECKING, reduce, takewhile, dropwhile = MatchError, count, enumerate, filter, makedata, map, reiterable, reversed, starmap, tee, zip, False, _coconut.functools.reduce, _coconut.itertools.takewhile, _coconut.itertools.dropwhile
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -946,4 +973,4 @@ if INSTALL_OLD_ITERNASH:
     setuptools.setup(name="iternash", version="1.0.0", description="See https://pypi.org/project/itergame for new PyPI.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=[], install_requires=["itergame",])
 
 else:
-    setuptools.setup(name="itergame", version="0.1.2", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["bbopt>=1.1.19", "tqdm",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})
+    setuptools.setup(name="itergame", version="0.1.2", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["bbopt>=1.1.21", "tqdm",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})
