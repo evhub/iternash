@@ -72,7 +72,11 @@ class Game:
 
     def copy(self):
         """Create a deep copy of the game."""
-        return deepcopy(self)
+        new_game = Game(self.name, *self.agents, independent_update=self.independent_update, default_run_kwargs=self.default_run_kwargs)
+        new_game.i = self.i
+        new_game.env = self.env_copy()
+        new_game.env["game"] = new_game
+        return new_game
 
     def copy_with_agents(self, *agents, **named_agents):
         """Create a deep copy with new agents."""
@@ -107,9 +111,16 @@ class Game:
         """Get a copy of the environment without the game."""
         new_env = clean_env(self.env)
         for a in self.agents:
-            if a.copy_func is not None:
+            if a.copy_func is not None and a.name in new_env:
                 new_env[a.name] = a.copy_func(new_env[a.name])
         return new_env
+
+    def copy_var(self, name, val):
+        """Apply all relevant copiers for the given name to val."""
+        for a in self.agents:
+            if a.name == name and a.copy_func is not None:
+                val = a.copy_func(val)
+        return val
 
     @property
     def max_period(self) =

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x63a4990b
+# __coconut_hash__ = 0xfe1579cb
 
 # Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
 
@@ -48,7 +48,7 @@ class Agent(_coconut.object):
     NO_DEFAULT = object()
     _sentinel = object()
 
-    def __init__(self, name, actor, default=NO_DEFAULT, period=1, extra_defaults={}, copy_func=None, debug=False):
+    def __init__(self, name, actor, default=NO_DEFAULT, period=1, extra_defaults={}, copy_func=deepcopy, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
@@ -202,13 +202,13 @@ def debug_agent(debug_str, name=None, **kwargs):
             is roughly equivalent to
         Agent(None, env -> print("x = {x}".format(**env)))
     """
-    return Agent(name, lambda env: (printret)(debug_str.format(**env)), **kwargs)
+    return Agent(name, lambda env: (printret)(debug_str.format(**env)), copy_func=None, **kwargs)
 
 
 def debug_all_agent(pretty=True, **kwargs):
     """Construct an agent that prints the entire env, prettily if _pretty_."""
     print_func = pprint if pretty else print
-    return Agent(None, lambda env: print_func(clean_env(env)), **kwargs)
+    return Agent(None, lambda env: print_func(clean_env(env)), copy_func=None, **kwargs)
 
 
 def init_agent(name, constant):
@@ -216,7 +216,7 @@ def init_agent(name, constant):
     return Agent(name, lambda env: constant, default=constant, period=float("inf"))
 
 
-def hist_agent(name, record_var, maxhist=None, copy_func=deepcopy, initializer=(), **kwargs):
+def hist_agent(name, record_var, maxhist=None, record_var_copy_func=Agent._sentinel, initializer=(), **kwargs):
     """Construct an agent that records a history.
 
     Parameters:
@@ -227,12 +227,17 @@ def hist_agent(name, record_var, maxhist=None, copy_func=deepcopy, initializer=(
     - _kwargs_ are passed to Agent.
     """
     def hist_actor(env):
+        copier = record_var_copy_func
         if isinstance(record_var, Str):
             got_val = env[record_var]
+            if copier is Agent._sentinel:
+                copier = _coconut.functools.partial(env["game"].copy_var, record_var)
         else:
             got_val = record_var(env)
-        if copy_func is not None:
-            got_val = copy_func(got_val)
+            if copier is Agent._sentinel:
+                copier = deepcopy
+        if copier is not None:
+            got_val = copier(got_val)
         env[name].append(got_val)
         return env[name]
     init_hist = [] if maxhist is None else deque(maxlen=maxhist)

@@ -50,6 +50,9 @@ Classes
     `copy(self)`
     :   Create a deep copy of the game.
 
+    `copy_var(self, name, val)`
+    :   Apply all relevant copiers for the given name to val.
+
     `copy_with_agents(self, *agents, **named_agents)`
     :   Create a deep copy with new agents.
 

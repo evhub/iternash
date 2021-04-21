@@ -69,7 +69,7 @@ Functions
     - _kwargs_ are passed to `Agent`.
 
     
-`hist_agent(name, record_var, maxhist=None, copy_func=<function deepcopy>, initializer=(), **kwargs)`
+`hist_agent(name, record_var, maxhist=None, record_var_copy_func=<object object>, initializer=(), **kwargs)`
 :   Construct an agent that records a history.
     
     Parameters:
@@ -98,7 +98,7 @@ Functions
 Classes
 -------
 
-`Agent(name, actor, default=<object object>, period=1, extra_defaults={}, copy_func=None, debug=False)`
+`Agent(name, actor, default=<object object>, period=1, extra_defaults={}, copy_func=<function deepcopy>, debug=False)`
 :   Agent class.
     
     Parameters:
