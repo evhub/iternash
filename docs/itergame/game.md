@@ -34,15 +34,14 @@ Classes
 
     ### Methods
 
-    `add_agents(self, *agents, **named_agents)`
+    `add_agents(*_coconut_match_to_args, **_coconut_match_to_kwargs)`
     :   Add the given agents/variables to the game.
 
     `attach(self, agent, period, name=None)`
     :   Add an agent to be called at interval _period_.
 
     `base_run(self, max_steps=None, stop_at_equilibrium=False, use_tqdm=True, ensure_all_agents_run=True)`
-    :   Run iterative action selection for _max_steps_ or
-        until equilibrium is reached if _stop_at_equilibrium_.
+    :   Run iterative action selection for _max_steps_ or until equilibrium is reached if _stop_at_equilibrium_.
 
     `clone(self, *args, **kwargs)`
     :   Equivalent to .copy().reset(*args, **kwargs).
@@ -73,7 +72,7 @@ Classes
         multiple trials with the same game you must explicitly call reset and if
         you are using bbopt agents you must pass a new _name_.
 
-    `run(self, max_steps=None, **kwargs)`
+    `run(self, max_steps=<object object>, stop_at_equilibrium=<object object>, use_tqdm=<object object>, ensure_all_agents_run=<object object>)`
     :   Exactly base_run but includes default_run_kwargs.
 
     `set_defaults(self, agents)`

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xde4adc79
+# __coconut_hash__ = 0x4c3b8f8b
 
 # Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
 
@@ -45,8 +45,9 @@ class Game(_coconut.object):
         which they are evaluated at each step.
     - _default_run_kwargs_ are keyword arguments to use as the defaults in run.
     """
-    final_step = False
     name = None
+    final_step = False
+    _sentinel = object()
 
     @_coconut_mark_as_match
     def __init__(*_coconut_match_to_args, **_coconut_match_to_kwargs):
@@ -90,8 +91,22 @@ class Game(_coconut.object):
             for k, v in a.get_defaults().items():
                 self.env[k] = v
 
-    def add_agents(self, *agents, **named_agents):
+    @_coconut_mark_as_match
+    def add_agents(*_coconut_match_to_args, **_coconut_match_to_kwargs):
         """Add the given agents/variables to the game."""
+        _coconut_match_check = False
+        _coconut_FunctionMatchError = _coconut_get_function_match_error()
+        if _coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "self" in _coconut_match_to_kwargs)) == 1:
+            _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("self")
+            agents = _coconut_match_to_args[1:]
+            _coconut_match_temp_1 = _coconut_match_to_kwargs.pop("_set_defaults") if "_set_defaults" in _coconut_match_to_kwargs else True
+            self = _coconut_match_temp_0
+            _set_defaults = _coconut_match_temp_1
+            named_agents = _coconut_match_to_kwargs
+            _coconut_match_check = True
+        if not _coconut_match_check:
+            raise _coconut_FunctionMatchError('match def add_agents(self, *agents, _set_defaults=True, **named_agents):', _coconut_match_to_args)
+
         new_agents = []
         for a in _coconut.itertools.chain.from_iterable(_coconut_reiterable(_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to = a
@@ -110,12 +125,13 @@ class Game(_coconut.object):
             assert isinstance(a, Agent), "not isinstance({_coconut_format_0}, Agent)".format(_coconut_format_0=(a))
             new_agents.append(a)
         self.agents += new_agents
-        self.set_defaults(new_agents)
+        if _set_defaults:
+            self.set_defaults(new_agents)
         return self
 
     def copy(self):
         """Create a deep copy of the game."""
-        new_game = Game(self.name, *self.agents, independent_update=self.independent_update, default_run_kwargs=self.default_run_kwargs)
+        new_game = Game(self.name, *self.agents, independent_update=self.independent_update, default_run_kwargs=self.default_run_kwargs, _set_defaults=False)
         new_game.i = self.i
         new_game.env = self.env_copy()
         new_game.env["game"] = new_game
@@ -169,17 +185,21 @@ class Game(_coconut.object):
     def max_period(self):
         return max((a.period for a in self.agents if a.period < float("inf")))
 
-    def run(self, max_steps=None, **kwargs):
+    def run(self, max_steps=_sentinel, stop_at_equilibrium=_sentinel, use_tqdm=_sentinel, ensure_all_agents_run=_sentinel):
         """Exactly base_run but includes default_run_kwargs."""
         run_kwargs = self.default_run_kwargs.copy()
-        if max_steps is not None:
+        if max_steps is not self._sentinel:
             run_kwargs["max_steps"] = max_steps
-        run_kwargs.update(kwargs)
+        if stop_at_equilibrium is not self._sentinel:
+            run_kwargs["stop_at_equilibrium"] = stop_at_equilibrium
+        if use_tqdm is not self._sentinel:
+            run_kwargs["use_tqdm"] = use_tqdm
+        if ensure_all_agents_run is not self._sentinel:
+            run_kwargs["ensure_all_agents_run"] = ensure_all_agents_run
         return self.base_run(**run_kwargs)
 
     def base_run(self, max_steps=None, stop_at_equilibrium=False, use_tqdm=True, ensure_all_agents_run=True):
-        """Run iterative action selection for _max_steps_ or
-        until equilibrium is reached if _stop_at_equilibrium_."""
+        """Run iterative action selection for _max_steps_ or until equilibrium is reached if _stop_at_equilibrium_."""
         if max_steps is None and not stop_at_equilibrium:
             raise ValueError("run needs either max_steps not None or stop_at_equilibrium True")
         if stop_at_equilibrium:

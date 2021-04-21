@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xfe1579cb
+# __coconut_hash__ = 0xeb09d353
 
 # Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
 
@@ -42,7 +42,7 @@ class Agent(_coconut.object):
     - _default_ is the agent's initial action.
     - _period_ is the period at which to call the agent (default is 1).
     - _extra_defaults_ are extra variables that need to be given defaults.
-    - _copy_func_ determines the function used to copy the agent's action (default is identity).
+    - _copy_func_ determines the function used to copy the agent's action (default is deepcopy).
     - _debug_ controls whether the agent should print what it's doing.
     """
     NO_DEFAULT = object()
