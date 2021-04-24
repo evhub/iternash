@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4c3b8f8b
+# __coconut_hash__ = 0x876927b9
 
-# Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev26 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -166,20 +166,25 @@ class Game(_coconut.object):
             self.env.update(updating_env)
         self.i += 1
 
-    def env_copy(self):
+    def env_copy(self, env=None):
         """Get a copy of the environment without the game."""
-        new_env = clean_env(self.env)
+        new_env = (clean_env(self.env) if env is None else env)
         for a in self.agents:
-            if a.copy_func is not None and a.name in new_env:
-                new_env[a.name] = a.copy_func(new_env[a.name])
+            for copy_name, copy_func in a.copiers.items():
+                _coconut_match_to = new_env
+                _coconut_match_check = False
+                if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
+                    _coconut_match_temp_0 = _coconut_match_to.get(copy_name, _coconut_sentinel)
+                    if _coconut_match_temp_0 is not _coconut_sentinel:
+                        val = _coconut_match_temp_0
+                        _coconut_match_check = True
+                if _coconut_match_check:
+                    new_env[copy_name] = copy_func(val)
         return new_env
 
     def copy_var(self, name, val):
         """Apply all relevant copiers for the given name to val."""
-        for a in self.agents:
-            if a.name == name and a.copy_func is not None:
-                val = a.copy_func(val)
-        return val
+        return self.env_copy({name: val})[name]
 
     @property
     def max_period(self):

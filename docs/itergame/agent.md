@@ -26,7 +26,7 @@ Functions
             ...
 
     
-`bbopt_agent(name, tunable_actor, util_func, file, alg=<object object>, **kwargs)`
+`bbopt_agent(name, tunable_actor, util_func, file, alg=<object object>, extra_copy_funcs=None, **kwargs)`
 :   Construct an agent that selects its action using a black box optimizer.
     
     Parameters:
@@ -91,14 +91,14 @@ Functions
 :   Construct an agent that just initializes name to the given constant.
 
     
-`iterator_agent(name, iterable, extra_defaults={}, **kwargs)`
+`iterator_agent(name, iterable, extra_defaults=None, extra_copy_funcs=None, **kwargs)`
 :   Construct an agent that successively produces values from the given
     iterable. Extra arguments are passed to Agent.
 
 Classes
 -------
 
-`Agent(name, actor, default=<object object>, period=1, extra_defaults={}, copy_func=<function deepcopy>, debug=False)`
+`Agent(name, actor, default=<object object>, period=1, extra_defaults={}, copy_func=<function deepcopy>, extra_copy_funcs=None, debug=False)`
 :   Agent class.
     
     Parameters:
@@ -109,6 +109,7 @@ Classes
     - _period_ is the period at which to call the agent (default is 1).
     - _extra_defaults_ are extra variables that need to be given defaults.
     - _copy_func_ determines the function used to copy the agent's action (default is deepcopy).
+    - _extra_copy_funcs_ are extra copiers for other env vars put there by this agent.
     - _debug_ controls whether the agent should print what it's doing.
 
     ### Class variables
@@ -116,9 +117,17 @@ Classes
     `NO_DEFAULT`
     :
 
+    ### Instance variables
+
+    `copy_func`
+    :
+
+    `extra_copy_funcs`
+    :
+
     ### Methods
 
-    `clone(self, name=None, actor=None, default=<object object>, period=None, extra_defaults=None, copy_func=<object object>, debug=None)`
+    `clone(self, name=None, actor=None, default=<object object>, period=None, extra_defaults=None, copy_func=<object object>, extra_copy_funcs=None, debug=None)`
     :   Create a copy of the agent (optionally) with new parameters.
 
     `get_defaults(self)`

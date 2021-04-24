@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xeb09d353
+# __coconut_hash__ = 0x2da3e78
 
-# Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev26 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -43,27 +43,42 @@ class Agent(_coconut.object):
     - _period_ is the period at which to call the agent (default is 1).
     - _extra_defaults_ are extra variables that need to be given defaults.
     - _copy_func_ determines the function used to copy the agent's action (default is deepcopy).
+    - _extra_copy_funcs_ are extra copiers for other env vars put there by this agent.
     - _debug_ controls whether the agent should print what it's doing.
     """
     NO_DEFAULT = object()
     _sentinel = object()
 
-    def __init__(self, name, actor, default=NO_DEFAULT, period=1, extra_defaults={}, copy_func=deepcopy, debug=False):
+    def __init__(self, name, actor, default=NO_DEFAULT, period=1, extra_defaults={}, copy_func=deepcopy, extra_copy_funcs=None, debug=False):
         self.name = name
         self.actor = actor
         self.default = default
         self.period = period
         self.extra_defaults = extra_defaults
-        self.copy_func = copy_func
         self.debug = debug
+        self.copiers = {}
+        if copy_func is not None:
+            self.copiers[name] = copy_func
+        if extra_copy_funcs is not None:
+            self.copiers.update(extra_copy_funcs)
 
-    def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, debug=None):
+    def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, extra_copy_funcs=None, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is self._sentinel:
             default = deepcopy(self.default)
         if copy_func is self._sentinel:
             copy_func = deepcopy(self.copy_func)
-        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (self.debug if debug is None else debug))
+        return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (lambda _coconut_x: self.extra_copy_funcs if _coconut_x is None else _coconut_x)(extra_copy_funcs), (self.debug if debug is None else debug))
+
+    @property
+    def copy_func(self):
+        return self.copiers[self.name]
+
+    @property
+    def extra_copy_funcs(self):
+        extra_copiers = self.copiers.copy()
+        del extra_copiers[self.name]
+        return extra_copiers
 
     def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""
@@ -158,7 +173,7 @@ def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs
     return Agent(name, human_actor, **kwargs)
 
 
-def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, **kwargs):
+def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, extra_copy_funcs=None, **kwargs):
     """Construct an agent that selects its action using a black box optimizer.
 
     Parameters:
@@ -172,14 +187,19 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
         is tree_structured_parzen_estimator).
     - _kwargs_ are passed to `Agent`.
     """
+    extra_copy_funcs = {} if extra_copy_funcs is None else extra_copy_funcs
+    bb_name = name + "_bb"
+    extra_copy_funcs[bb_name] = lambda bb: None
     def bbopt_actor(env):
         _coconut_match_to = env
         _coconut_match_check = False
         if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
-            _coconut_match_temp_0 = _coconut_match_to.get((name + "_bb"), _coconut_sentinel)
+            _coconut_match_temp_0 = _coconut_match_to.get(bb_name, _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
                 bb = _coconut_match_temp_0
                 _coconut_match_check = True
+        if _coconut_match_check and not (bb is not None):
+            _coconut_match_check = False
         if _coconut_match_check:
             if isinstance(util_func, Str):
                 util = env[util_func]
@@ -188,10 +208,10 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
             bb.maximize(util)
         else:
             bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
-            env[name + "_bb"] = bb
+            env[bb_name] = bb
         bb.run(alg=alg if not env["game"].final_step else None)
         return tunable_actor(bb, env)
-    return Agent(name, bbopt_actor, **kwargs)
+    return Agent(name, bbopt_actor, extra_copy_funcs=extra_copy_funcs, **kwargs)
 
 
 def debug_agent(debug_str, name=None, **kwargs):
@@ -246,12 +266,15 @@ def hist_agent(name, record_var, maxhist=None, record_var_copy_func=Agent._senti
     return Agent(name, hist_actor, default=init_hist, **kwargs)
 
 
-def iterator_agent(name, iterable, extra_defaults={}, **kwargs):
+def iterator_agent(name, iterable, extra_defaults=None, extra_copy_funcs=None, **kwargs):
     """Construct an agent that successively produces values from the given
     iterable. Extra arguments are passed to Agent."""
+    extra_defaults = {} if extra_defaults is None else extra_defaults
+    extra_copy_funcs = {} if extra_copy_funcs is None else extra_copy_funcs
     it_name = name + "_it"
     extra_defaults[it_name] = iterable
+    extra_copy_funcs[it_name] = deepcopy
     def iterator_actor(env):
         env[it_name] = (iter)(env[it_name])
         return next(env[it_name])
-    return Agent(name, iterator_actor, extra_defaults=extra_defaults, **kwargs)
+    return Agent(name, iterator_actor, extra_defaults=extra_defaults, extra_copy_funcs=extra_copy_funcs, **kwargs)

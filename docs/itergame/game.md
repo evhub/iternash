@@ -55,7 +55,7 @@ Classes
     `copy_with_agents(self, *agents, **named_agents)`
     :   Create a deep copy with new agents.
 
-    `env_copy(self)`
+    `env_copy(self, env=None)`
     :   Get a copy of the environment without the game.
 
     `finalize(self, ensure_all_agents_run=True)`

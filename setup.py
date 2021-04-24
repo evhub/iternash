@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3aa13b65
+# __coconut_hash__ = 0xba36befd
 
-# Compiled with Coconut version 1.5.0-post_dev24 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev26 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -208,10 +208,13 @@ class _coconut(object):
         abc = collections
     else:
         import collections.abc as abc
-    class typing(object):
-        @staticmethod
-        def NamedTuple(name, fields):
-            return _coconut.collections.namedtuple(name, [x for x, t in fields])
+    if _coconut_sys.version_info >= (3, 6):
+        import typing
+    else:
+        class typing(object):
+            @staticmethod
+            def NamedTuple(name, fields):
+                return _coconut.collections.namedtuple(name, [x for x, t in fields])
     zip_longest = itertools.zip_longest if _coconut_sys.version_info >= (3,) else itertools.izip_longest
     Ellipsis, NotImplemented, NotImplementedError, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, RuntimeError, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, super, tuple, type, vars, zip, repr, bytearray = Ellipsis, NotImplemented, NotImplementedError, Exception, AttributeError, ImportError, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, RuntimeError, classmethod, dict, enumerate, filter, float, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, locals, map, min, max, next, object, print, property, range, reversed, set, slice, str, sum, super, tuple, type, vars, zip, staticmethod(repr), bytearray
 _coconut_sentinel = _coconut.object()
@@ -241,6 +244,29 @@ class MatchError(Exception):
         return Exception.__unicode__(self)
     def __reduce__(self):
         return (self.__class__, (self.pattern, self.value))
+class _coconut_tail_call(object):
+    __slots__ = ("func", "args", "kwargs")
+    def __init__(self, func, *args, **kwargs):
+        self.func, self.args, self.kwargs = func, args, kwargs
+_coconut_tco_func_dict = {}
+def _coconut_tco(func):
+    @_coconut.functools.wraps(func)
+    def tail_call_optimized_func(*args, **kwargs):
+        call_func = func
+        while True:
+            wkref = _coconut_tco_func_dict.get(_coconut.id(call_func))
+            if wkref is not None and wkref() is call_func or _coconut.isinstance(call_func, _coconut_base_pattern_func):
+                call_func = call_func._coconut_tco_func
+            result = call_func(*args, **kwargs)  # pass --no-tco to clean up your traceback
+            if not isinstance(result, _coconut_tail_call):
+                return result
+            call_func, args, kwargs = result.func, result.args, result.kwargs
+    tail_call_optimized_func._coconut_tco_func = func
+    tail_call_optimized_func.__module__ = _coconut.getattr(func, "__module__", None)
+    tail_call_optimized_func.__name__ = _coconut.getattr(func, "__name__", "<coconut tco function (pass --no-tco to remove)>")
+    tail_call_optimized_func.__qualname__ = _coconut.getattr(func, "__qualname__", tail_call_optimized_func.__name__)
+    _coconut_tco_func_dict[_coconut.id(tail_call_optimized_func)] = _coconut.weakref.ref(tail_call_optimized_func)
+    return tail_call_optimized_func
 def _coconut_igetitem(iterable, index):
     if _coconut.isinstance(iterable, (_coconut_reversed, _coconut_map, _coconut.zip, _coconut_enumerate, _coconut_count, _coconut.abc.Sequence)):
         return iterable[index]
@@ -911,7 +937,7 @@ def makedata(data_type, *args):
     """Construct an object of the given data_type containing the given arguments."""
     if _coconut.hasattr(data_type, "_make") and _coconut.issubclass(data_type, _coconut.tuple):
         return data_type._make(args)
-    if _coconut.issubclass(data_type, (_coconut.map, _coconut.range, _coconut.abc.Iterator)):
+    if _coconut.issubclass(data_type, (_coconut.range, _coconut.abc.Iterator)):
         return args
     if _coconut.issubclass(data_type, _coconut.str):
         return "".join(args)
@@ -973,4 +999,4 @@ if INSTALL_OLD_ITERNASH:
     setuptools.setup(name="iternash", version="1.0.0", description="See https://pypi.org/project/itergame for new PyPI.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=[], install_requires=["itergame",])
 
 else:
-    setuptools.setup(name="itergame", version="0.1.3", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["bbopt>=1.1.21", "tqdm",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})
+    setuptools.setup(name="itergame", version="0.1.4", description="Iterative equilibrium finder for simulating arbitrary games in Python/Coconut.", url="https://github.com/evhub/iternash", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=["bbopt>=1.1.21", "tqdm",], extras_require={"examples": ["numpy", "scipy", "mpmath", "scikit-learn", "matplotlib",], "dev": ["pdoc3", "Markdown",]})
