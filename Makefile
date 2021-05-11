@@ -61,13 +61,13 @@ docs: dev
 clean:
 	rm -rf ./dist ./build
 	-find . -name '*.pyc' -delete
-	-C:\GnuWin32\bin\find.exe . -name '*.pyc' -delete
+	-C:/GnuWin32/bin/find.exe . -name '*.pyc' -delete
 	-find . -name '__pycache__' -delete
-	-C:\GnuWin32\bin\find.exe . -name '__pycache__' -delete
+	-C:/GnuWin32/bin/find.exe . -name '__pycache__' -delete
 	-find . -name '*.bbopt.pickle' -delete
-	-C:\GnuWin32\bin\find.exe . -name '*.bbopt.pickle' -delete
+	-C:/GnuWin32/bin/find.exe . -name '*.bbopt.pickle' -delete
 	-find . -name '*.bbopt.json' -delete
-	-C:\GnuWin32\bin\find.exe . -name '*.bbopt.json' -delete
+	-C:/GnuWin32/bin/find.exe . -name '*.bbopt.json' -delete
 
 .PHONY: wipe
 wipe: clean
