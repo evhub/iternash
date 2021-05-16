@@ -29,7 +29,7 @@ else:
         author_email="evanjhub@gmail.com",
         packages=setuptools.find_packages(),
         install_requires=[
-            "bbopt>=1.1.21",
+            "bbopt>=1.2.0",
             "tqdm",
         ],
         extras_require={
