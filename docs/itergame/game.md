@@ -4,7 +4,7 @@ Module itergame.game
 Classes
 -------
 
-`Game(**_coconut_match_to_kwargs)`
+`Game(**_coconut_match_kwargs)`
 :   Game class.
     
     Parameters:
@@ -34,7 +34,7 @@ Classes
 
     ### Methods
 
-    `add_agents(*_coconut_match_to_args, **_coconut_match_to_kwargs)`
+    `add_agents(*_coconut_match_args, **_coconut_match_kwargs)`
     :   Add the given agents/variables to the game.
 
     `attach(self, agent, period, name=None)`
