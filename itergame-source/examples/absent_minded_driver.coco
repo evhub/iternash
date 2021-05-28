@@ -93,7 +93,7 @@ ER_agent = expr_agent(
     + (p + (1-p)*(1-p_mod))**n * (
         PC * r_m
         + (1-PC) * r_f
-        + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
+        + (m - p*(p**m - 1)/(p - 1) if p < 1 else 0) * r_rem_m
         + m * (1 - p) * r_per_m
     )
     """,

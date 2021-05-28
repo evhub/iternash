@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa7b22a41
+# __coconut_hash__ = 0x84b4c4ea
 
 # Compiled with Coconut version 1.5.0-post_dev57 [Fish License]
 
@@ -81,7 +81,7 @@ ER_agent = expr_agent(name="ER", expr="""
     + (p + (1-p)*(1-p_mod))**n * (
         PC * r_m
         + (1-PC) * r_f
-        + (m - p*(p**m - 1)/(p - 1)) * r_rem_m
+        + (m - p*(p**m - 1)/(p - 1) if p < 1 else 0) * r_rem_m
         + m * (1 - p) * r_per_m
     )
     """)
