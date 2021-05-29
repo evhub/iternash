@@ -4,14 +4,14 @@ clean-docs: clean docs
 .PHONY: all
 all: clean-docs run
 
-.PHONY: all-pd
-all-pd: clean-docs run-pd
+.PHONY: test-pd
+test-pd: clean build run-pd
 
-.PHONY: all-driver
-all-driver: clean-docs run-driver
+.PHONY: test-driver
+test-driver: clean build run-driver
 
-.PHONY: all-logistic
-all-logistic: clean-docs run-logistic
+.PHONY: test-logistic
+test-logistic: clean build run-logistic
 
 .PHONY: run
 run: run-pd run-driver run-logistic
