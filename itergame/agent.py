@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbdebd5bc
+# __coconut_hash__ = 0x25cea359
 
 # Compiled with Coconut version 1.5.0-post_dev57 [Fish License]
 
@@ -184,7 +184,9 @@ def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs
     return Agent(name, human_actor, **kwargs)
 
 
-def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, extra_copy_funcs=None, print_chosen_alg=False, **kwargs):
+DEFAULT_BBOPT_ALG = "tree_structured_parzen_estimator"
+
+def bbopt_agent(name, tunable_actor, util_func, file, alg=None, extra_copy_funcs=None, print_chosen_alg=False, **kwargs):
     """Construct an agent that selects its action using a black box optimizer.
 
     Parameters:
@@ -198,6 +200,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
         is tree_structured_parzen_estimator).
     - _kwargs_ are passed to `Agent`.
     """
+    alg = DEFAULT_BBOPT_ALG if alg is None else alg
     extra_copy_funcs = {} if extra_copy_funcs is None else extra_copy_funcs
     bb_name = name + "_bb"
     extra_copy_funcs[bb_name] = lambda bb: None
