@@ -1,8 +1,9 @@
-.PHONY: clean-docs
-clean-docs: clean docs
+.PHONY: docs
+docs: clean dev
+	pdoc ./itergame -o ./docs --force
 
 .PHONY: all
-all: clean-docs run
+all: docs run
 
 .PHONY: test-pd
 test-pd: clean build run-pd
@@ -52,10 +53,6 @@ dev: build
 .PHONY: install
 install: build
 	pip install -Ue .[examples]
-
-.PHONY: docs
-docs: dev
-	pdoc ./itergame -o ./docs --force
 
 .PHONY: clean
 clean:

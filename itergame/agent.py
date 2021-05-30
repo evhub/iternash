@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x1391bb75
+# __coconut_hash__ = 0xbdebd5bc
 
 # Compiled with Coconut version 1.5.0-post_dev57 [Fish License]
 
@@ -35,6 +35,7 @@ from collections import deque
 from copy import deepcopy
 
 from bbopt import BlackBoxOptimizer
+from bbopt.constants import meta_opt_alg_var
 
 from itergame.util import Str
 from itergame.util import printret
@@ -183,7 +184,7 @@ def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs
     return Agent(name, human_actor, **kwargs)
 
 
-def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, extra_copy_funcs=None, **kwargs):
+def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFAULT_ALG_SENTINEL, extra_copy_funcs=None, print_chosen_alg=False, **kwargs):
     """Construct an agent that selects its action using a black box optimizer.
 
     Parameters:
@@ -220,6 +221,10 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=BlackBoxOptimizer.DEFA
             bb = BlackBoxOptimizer(file=file, tag=env["game"].name + "_" + name)
             env[bb_name] = bb
         bb.run(alg=alg if not env["game"].final_step else None)
+        if print_chosen_alg:
+            chosen_alg = bb.get_current_run()["values"].get(meta_opt_alg_var)
+            if chosen_alg is not None:
+                print("\nusing BBopt alg =", chosen_alg)
         return tunable_actor(bb, env)
     return Agent(name, bbopt_actor, extra_copy_funcs=extra_copy_funcs, **kwargs)
 

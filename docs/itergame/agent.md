@@ -26,7 +26,7 @@ Functions
             ...
 
     
-`bbopt_agent(name, tunable_actor, util_func, file, alg=<object object>, extra_copy_funcs=None, **kwargs)`
+`bbopt_agent(name, tunable_actor, util_func, file, alg=<object object>, extra_copy_funcs=None, print_chosen_alg=False, **kwargs)`
 :   Construct an agent that selects its action using a black box optimizer.
     
     Parameters:
