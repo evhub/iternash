@@ -38,13 +38,11 @@ setup:
 
 .PHONY: build
 build:
-	coconut setup.coco --no-tco --strict
-	coconut itergame-source itergame --no-tco --strict --jobs sys
+	coconut setup.coco --and itergame-source itergame --no-tco --strict --jobs sys
 
 .PHONY: force-build
 force-build:
-	coconut setup.coco --no-tco --strict --force
-	coconut itergame-source itergame --no-tco --strict --jobs sys --force
+	coconut setup.coco --and itergame-source itergame --force --no-tco --strict --jobs sys
 
 .PHONY: dev
 dev: build
@@ -82,4 +80,4 @@ upload-old: upload
 
 .PHONY: watch
 watch: install
-	coconut itergame-source itergame --watch --no-tco --strict
+	coconut itergame-source itergame --watch --no-tco --strict --jobs sys

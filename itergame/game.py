@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa6fed02e
+# __coconut_hash__ = 0xb8ba91e
 
-# Compiled with Coconut version 1.5.0-post_dev75 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev78 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -32,8 +32,6 @@ from __coconut__ import _coconut_call_set_names, _coconut, _coconut_MatchError, 
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
-
-from copy import deepcopy
 
 from tqdm import tqdm
 
