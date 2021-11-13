@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb8ba91e
+# __coconut_hash__ = 0x9abc6469
 
-# Compiled with Coconut version 1.5.0-post_dev78 [Fish License]
+# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable
+from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -63,22 +63,41 @@ class Game(_coconut.object):
     @_coconut_mark_as_match
     def __init__(*_coconut_match_args, **_coconut_match_kwargs):
         _coconut_match_check_0 = False
+        _coconut_match_set_name_self = _coconut_sentinel
+        _coconut_match_set_name_name = _coconut_sentinel
+        _coconut_match_set_name_agents = _coconut_sentinel
+        _coconut_match_set_name_independent_update = _coconut_sentinel
+        _coconut_match_set_name_default_run_kwargs = _coconut_sentinel
+        _coconut_match_set_name_named_agents = _coconut_sentinel
         _coconut_FunctionMatchError = _coconut_get_function_match_error()
         if (_coconut.sum((_coconut.len(_coconut_match_args) > 0, "self" in _coconut_match_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_args) > 1, "name" in _coconut_match_kwargs)) == 1):
             _coconut_match_temp_0 = _coconut_match_args[0] if _coconut.len(_coconut_match_args) > 0 else _coconut_match_kwargs.pop("self")
             _coconut_match_temp_1 = _coconut_match_args[1] if _coconut.len(_coconut_match_args) > 1 else _coconut_match_kwargs.pop("name")
-            agents = _coconut_match_args[2:]
+            _coconut_match_set_name_agents = _coconut_match_args[2:]
             _coconut_match_temp_2 = _coconut_match_kwargs.pop("independent_update") if "independent_update" in _coconut_match_kwargs else False
             _coconut_match_temp_3 = _coconut_match_kwargs.pop("default_run_kwargs") if "default_run_kwargs" in _coconut_match_kwargs else {}
-            if _coconut.isinstance(_coconut_match_temp_1, Str):
-                self = _coconut_match_temp_0
-                name = _coconut_match_temp_1
-                independent_update = _coconut_match_temp_2
-                default_run_kwargs = _coconut_match_temp_3
-                named_agents = _coconut_match_kwargs
+            if (isinstance)(_coconut_match_temp_1, Str):
+                _coconut_match_set_name_self = _coconut_match_temp_0
+                _coconut_match_set_name_name = _coconut_match_temp_1
+                _coconut_match_set_name_independent_update = _coconut_match_temp_2
+                _coconut_match_set_name_default_run_kwargs = _coconut_match_temp_3
+                _coconut_match_set_name_named_agents = _coconut_match_kwargs
                 _coconut_match_check_0 = True
+        if _coconut_match_check_0:
+            if _coconut_match_set_name_self is not _coconut_sentinel:
+                self = _coconut_match_temp_0
+            if _coconut_match_set_name_name is not _coconut_sentinel:
+                name = _coconut_match_temp_1
+            if _coconut_match_set_name_agents is not _coconut_sentinel:
+                agents = _coconut_match_args[2:]
+            if _coconut_match_set_name_independent_update is not _coconut_sentinel:
+                independent_update = _coconut_match_temp_2
+            if _coconut_match_set_name_default_run_kwargs is not _coconut_sentinel:
+                default_run_kwargs = _coconut_match_temp_3
+            if _coconut_match_set_name_named_agents is not _coconut_sentinel:
+                named_agents = _coconut_match_kwargs
         if not _coconut_match_check_0:
-            raise _coconut_FunctionMatchError('match def __init__(self, name is Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):', _coconut_match_args)
+            raise _coconut_FunctionMatchError('match def __init__(self, name `isinstance` Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):', _coconut_match_args)
 
         self.agents = []
         self.independent_update = independent_update
@@ -106,15 +125,28 @@ class Game(_coconut.object):
     def add_agents(*_coconut_match_args, **_coconut_match_kwargs):
         """Add the given agents/variables to the game."""
         _coconut_match_check_2 = False
+        _coconut_match_set_name_self = _coconut_sentinel
+        _coconut_match_set_name_agents = _coconut_sentinel
+        _coconut_match_set_name__set_defaults = _coconut_sentinel
+        _coconut_match_set_name_named_agents = _coconut_sentinel
         _coconut_FunctionMatchError = _coconut_get_function_match_error()
         if _coconut.sum((_coconut.len(_coconut_match_args) > 0, "self" in _coconut_match_kwargs)) == 1:
             _coconut_match_temp_0 = _coconut_match_args[0] if _coconut.len(_coconut_match_args) > 0 else _coconut_match_kwargs.pop("self")
-            agents = _coconut_match_args[1:]
+            _coconut_match_set_name_agents = _coconut_match_args[1:]
             _coconut_match_temp_1 = _coconut_match_kwargs.pop("_set_defaults") if "_set_defaults" in _coconut_match_kwargs else True
-            self = _coconut_match_temp_0
-            _set_defaults = _coconut_match_temp_1
-            named_agents = _coconut_match_kwargs
+            _coconut_match_set_name_self = _coconut_match_temp_0
+            _coconut_match_set_name__set_defaults = _coconut_match_temp_1
+            _coconut_match_set_name_named_agents = _coconut_match_kwargs
             _coconut_match_check_2 = True
+        if _coconut_match_check_2:
+            if _coconut_match_set_name_self is not _coconut_sentinel:
+                self = _coconut_match_temp_0
+            if _coconut_match_set_name_agents is not _coconut_sentinel:
+                agents = _coconut_match_args[1:]
+            if _coconut_match_set_name__set_defaults is not _coconut_sentinel:
+                _set_defaults = _coconut_match_temp_1
+            if _coconut_match_set_name_named_agents is not _coconut_sentinel:
+                named_agents = _coconut_match_kwargs
         if not _coconut_match_check_2:
             raise _coconut_FunctionMatchError('match def add_agents(self, *agents, _set_defaults=True, **named_agents):', _coconut_match_args)
 
@@ -122,10 +154,17 @@ class Game(_coconut.object):
         for a in _coconut.itertools.chain.from_iterable(_coconut_reiterable(_coconut_func() for _coconut_func in (lambda: agents, lambda: named_agents.items()))):
             _coconut_match_to_0 = a
             _coconut_match_check_1 = False
+            _coconut_match_set_name_name = _coconut_sentinel
+            _coconut_match_set_name_actor = _coconut_sentinel
             if (_coconut.isinstance(_coconut_match_to_0, _coconut.abc.Sequence)) and (_coconut.len(_coconut_match_to_0) == 2):
-                name = _coconut_match_to_0[0]
-                actor = _coconut_match_to_0[1]
+                _coconut_match_set_name_name = _coconut_match_to_0[0]
+                _coconut_match_set_name_actor = _coconut_match_to_0[1]
                 _coconut_match_check_1 = True
+            if _coconut_match_check_1:
+                if _coconut_match_set_name_name is not _coconut_sentinel:
+                    name = _coconut_match_to_0[0]
+                if _coconut_match_set_name_actor is not _coconut_sentinel:
+                    actor = _coconut_match_to_0[1]
             if _coconut_match_check_1:
                 if not callable(actor):
                     a = init_agent(name, actor)
@@ -184,11 +223,15 @@ class Game(_coconut.object):
             for copy_name, copy_func in a.copiers.items():
                 _coconut_match_to_1 = new_env
                 _coconut_match_check_3 = False
+                _coconut_match_set_name_val = _coconut_sentinel
                 if _coconut.isinstance(_coconut_match_to_1, _coconut.abc.Mapping):
                     _coconut_match_temp_0 = _coconut_match_to_1.get(copy_name, _coconut_sentinel)
                     if _coconut_match_temp_0 is not _coconut_sentinel:
-                        val = _coconut_match_temp_0
+                        _coconut_match_set_name_val = _coconut_match_temp_0
                         _coconut_match_check_3 = True
+                if _coconut_match_check_3:
+                    if _coconut_match_set_name_val is not _coconut_sentinel:
+                        val = _coconut_match_temp_0
                 if _coconut_match_check_3:
                     new_env[copy_name] = copy_func(val)
         return new_env

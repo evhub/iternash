@@ -185,7 +185,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=None, extra_copy_funcs
     bb_name = name + "_bb"
     extra_copy_funcs[bb_name] = bb -> None
     def bbopt_actor(env):
-        match {=bb_name: bb, **_} in env if bb is not None:
+        match {==bb_name: bb, **_} in env if bb is not None:
             if isinstance(util_func, Str):
                 util = env[util_func]
             else:

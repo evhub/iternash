@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7d09e786
+# __coconut_hash__ = 0xa7fafaa1
 
-# Compiled with Coconut version 1.5.0-post_dev78 [Fish License]
+# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable
+from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -208,7 +208,7 @@ def print_logregress(ds, logys, yname="y"):
     print("\nlog({_coconut_format_0}) = {_coconut_format_1} d + {_coconut_format_2}\t(r**2 = {_coconut_format_3})".format(_coconut_format_0=(yname), _coconut_format_1=(m), _coconut_format_2=(b), _coconut_format_3=(r**2)))
     print("{_coconut_format_0} = {_coconut_format_1} * 2**({_coconut_format_2} d))".format(_coconut_format_0=(yname), _coconut_format_1=(exp(b)), _coconut_format_2=(m / log(2))))
     poly = PolynomialFeatures(degree=2, include_bias=False)
-    X = ((poly.fit_transform)((list)((map)(lambda x: [x], ds))))
+    X = ((poly.fit_transform)((list)((map)(lambda x: [x, ], ds))))
     clf = linear_model.LinearRegression()
     clf.fit(X, logys)
 # a d**2 + b d + c
@@ -240,8 +240,8 @@ if __name__ == "__main__":
     pprint(baseline_env)
 
     ds = range(1, 5)
-    nonseq_PCs = [baseline_env["PC"]] + [run_nonseq_game(d) for d in ds[1:]]
-    seq_PCs = [baseline_env["PC"]] + [run_seq_game(d) for d in ds[1:]]
+    nonseq_PCs = [baseline_env["PC"], ] + [run_nonseq_game(d) for d in ds[1:]]
+    seq_PCs = [baseline_env["PC"], ] + [run_seq_game(d) for d in ds[1:]]
 
     eps, m = common_params["eps"], common_params["m"]
     nonseq_logys = [log(PC / eps**d) for d, PC in zip(ds, nonseq_PCs)]

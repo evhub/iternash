@@ -29,7 +29,7 @@ class Game:
     final_step = False
     _sentinel = object()
 
-    match def __init__(self, name is Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):
+    match def __init__(self, name `isinstance` Str, *agents, independent_update=False, default_run_kwargs={}, **named_agents):
         self.agents = []
         self.independent_update = independent_update
         self.default_run_kwargs = default_run_kwargs
@@ -112,7 +112,7 @@ class Game:
         new_env = env ?? clean_env(self.env)
         for a in self.agents:
             for copy_name, copy_func in a.copiers.items():
-                match {=copy_name: val, **_} in new_env:
+                match {==copy_name: val, **_} in new_env:
                     new_env[copy_name] = copy_func(val)
         return new_env
 
