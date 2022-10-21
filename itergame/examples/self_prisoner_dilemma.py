@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xba734f69
+# __coconut_hash__ = 0x19ac217d
 
-# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys as _coconut_sys, os as _coconut_os
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.dirname(_coconut_os.path.abspath(__file__)))
 _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:
+if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:  # type: ignore
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_dir)
 _coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
+from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -72,6 +72,7 @@ def coop_with_prob(p):
     return np.random.binomial(1, 1 - p)
 
 
+
 common_params = dict(INIT_C_PROB=0.5, DEL_C=SELF_PD_DEL_C, USE_STATE=False)
 
 
@@ -82,6 +83,7 @@ def get_prev_a(env):
     if not env["a_hist_1step"]:
         env["a_hist_1step"].append(coop_with_prob(env["INIT_C_PROB"]))
     return env["a_hist_1step"][-1]
+
 
 
 @agent(name="r")
@@ -95,6 +97,7 @@ def get_corrupted_feedback(env, s=None, a=None, k=None):
     return feedback + corruption
 
 
+
 @agent(name="s", default=C)
 def get_state(env):
     if env["USE_STATE"]:
@@ -105,6 +108,7 @@ def get_state(env):
 
 # = POLICY GRADIENT GAME =
 
+
 pol_grad_params = common_params.copy()
 pol_grad_params.update(POL_GRAD_LR=0.01, CLIP_EPS=0.01)
 
@@ -112,6 +116,7 @@ pol_grad_params.update(POL_GRAD_LR=0.01, CLIP_EPS=0.01)
 @agent(name="a")
 def pol_grad_act(env):
     return coop_with_prob(env["pcs"][env["s"]])
+
 
 
 @agent(name="pcs", default=[np.random.random(), np.random.random()])
@@ -144,11 +149,13 @@ def pol_grad_update(env, a=None, r=None):
     return th
 
 
+
 @agent(name="pcs", default=[np.random.random(), np.random.random()])
 def pol_grad_decoupled_update(env):
     k = pol_grad_act(env)
     r = get_corrupted_feedback(env, k=k)
     return pol_grad_update(env, a=k, r=r)
+
 
 
 pol_grad_game = Game("pol_grad", get_state, pol_grad_act, get_corrupted_feedback, pol_grad_update, a_hist_1step, **pol_grad_params)
@@ -177,9 +184,11 @@ def get_eps_greedy_pc(env, s, eps=None):
         return prob_coop
 
 
+
 @agent(name="pcs")
 def eps_greedy_pcs(env, eps=None):
     return [get_eps_greedy_pc(env, i, eps) for i in range(2)]
+
 
 
 def get_boltz_pc(env, s, temp=None):
@@ -191,9 +200,11 @@ def get_boltz_pc(env, s, temp=None):
     return zc / (zc + zd)
 
 
+
 @agent(name="pcs")
 def boltz_pcs(env):
     return [get_boltz_pc(env, i) for i in range(2)]
+
 
 
 @agent(name="pcs")
@@ -201,9 +212,11 @@ def eps_greedy_decay_pcs(env):
     return eps_greedy_pcs(env, eps=1 / env["M"][env["s"]])
 
 
+
 @agent(name="a")
 def ql_pcs_act(env):
     return coop_with_prob(env["pcs"][env["s"]])
+
 
 
 @agent(name="qs", default=np.zeros((2, 2)), extra_defaults=dict(q_sums=np.zeros((2, 2)), q_counts=np.zeros((2, 2))))
@@ -214,6 +227,7 @@ def ql_true_avg_update(env):
     env["q_counts"][s, a] += 1
     env["qs"][s, a] = env["q_sums"][s, a] / env["q_counts"][s, a]
     return env["qs"]
+
 
 
 @agent(name="qs", default=np.zeros((2, 2)))
@@ -231,10 +245,12 @@ def ql_run_avg_update(env):
     return env["qs"]
 
 
+
 @agent(name="M", default=[1, 1])
 def M_counter(env):
     env["M"][env["s"]] += 1
     return env["M"]
+
 
 
 @agent(name="qs", default=np.zeros((2, 2)))
@@ -263,6 +279,7 @@ def ql_decoupled_update(env):
 
     env["qs"][s, k] = (1 - al) * env["qs"][s, k] + al * r
     return env["qs"]
+
 
 
 ql_eps_greedy_true_avg_game = Game("ql_eps_greedy_true_avg", get_state, eps_greedy_pcs, ql_pcs_act, get_corrupted_feedback, ql_true_avg_update, a_hist_1step, **ql_params)
@@ -341,6 +358,7 @@ def plot_pcs(game, num_steps=10000, axs=None, **kwargs):
         plt.show()
 
 
+
 def plot_qs(game, num_steps=10000, axs=None, **kwargs):
     """Plot qs over time in the given game."""
     if num_steps is not None:
@@ -371,6 +389,7 @@ def plot_qs(game, num_steps=10000, axs=None, **kwargs):
         plt.show()
 
 
+
 def plot_M(game, num_steps=10000, axs=None, **kwargs):
     if num_steps is not None:
         game = game.copy_with_agents(hist_agent("M_hist", "M"))
@@ -399,6 +418,7 @@ def plot_M(game, num_steps=10000, axs=None, **kwargs):
         plt.show()
 
 
+
 def plot_qs_pcs_M(game, num_steps=10000, **kwargs):
     """Plot qs, pcs, and M together."""
     game = game.copy_with_agents(hist_agent("qs_hist", "qs"), hist_agent("pcs_hist", "pcs"), hist_agent("M_hist", "M"))
@@ -413,10 +433,11 @@ def plot_qs_pcs_M(game, num_steps=10000, **kwargs):
     plt.show()
 
 
+
 def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_calc_steps=500):
     """Measure limiting behavior for the given game."""
     game = game.copy_with_agents(hist_agent("a_hist", "a", maxhist=pc_calc_steps))
-    buckets = [0, ] * int(1 / bucket_size)
+    buckets = [0,] * int(1 / bucket_size)
     coop_props = []
     print("Running experiment for {_coconut_format_0}...".format(_coconut_format_0=(game.name)))
     for _ in tqdm(range(num_iters)):
@@ -433,15 +454,18 @@ def run_experiment(game, num_iters=500, num_steps=5000, bucket_size=0.01, pc_cal
     return buckets, sum(coop_props) / len(coop_props)
 
 
+
 def run_experiments(*games, **kwargs):
     """Runs multiple experiments and collects the results."""
     return dict(((g.name), (run_experiment(g, **kwargs))) for g in games)
+
 
 
 def show_expected_coop_props(results):
     """Print the expected proportion of cooperations for the given games."""
     for name, (_, exp_coop_prop) in sorted(results.items(), key=_coconut_base_compose(_coconut.operator.itemgetter((1)), (_coconut.operator.itemgetter((1)), 0))):
         print("E[1/(m-n) sum[i=n -> m] C[i] | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(exp_coop_prop)))
+
 
 
 def show_percent_in_coop_eq(results):
@@ -451,15 +475,17 @@ def show_percent_in_coop_eq(results):
         print("P(cooperative equilibrium | {_coconut_format_0}] =\n\t{_coconut_format_1}".format(_coconut_format_0=(name), _coconut_format_1=(prob_coop_eq)))
 
 
+
 def plot_experiments(results, linestyles=(":", "-.", "--", "-"), alpha=0.6, linewidth=2.25, **kwargs):
     """Plot cooperation proportions for all the given games."""
     fig, ax = plt.subplots(1)
-    for (name, buckets), ls in (_coconut_partial(zip, {1: repeat(linestyles)}, 2))((map)(lambda kv: (kv[0], kv[1][0]), results.items())):
+    for (name, buckets), ls in (_coconut_partial(zip, {1: repeat(linestyles)}, 2, ()))((map)(lambda kv: (kv[0], kv[1][0]), results.items())):
         bucket_xs = np.linspace(0, 1, num=len(buckets))
         ax.plot(bucket_xs, buckets, label=name, ls=ls, alpha=alpha, lw=linewidth)
     ax.set(xlabel="equilibrium cooperation probability", ylabel="probability of equilibrium")
     ax.legend()
     plt.show()
+
 
 
 if __name__ == "__main__":

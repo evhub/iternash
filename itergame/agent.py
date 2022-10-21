@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6b6dddea
+# __coconut_hash__ = 0x5c2cebfb
 
-# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys as _coconut_sys, os as _coconut_os
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:
+if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:  # type: ignore
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_dir)
 _coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
+from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -76,6 +76,7 @@ class Agent(_coconut.object):
         if extra_copy_funcs is not None:
             self.copiers.update(extra_copy_funcs)
 
+
     def clone(self, name=None, actor=None, default=_sentinel, period=None, extra_defaults=None, copy_func=_sentinel, extra_copy_funcs=None, debug=None):
         """Create a copy of the agent (optionally) with new parameters."""
         if default is self._sentinel:
@@ -84,15 +85,18 @@ class Agent(_coconut.object):
             copy_func = deepcopy(self.copy_func)
         return Agent((self.name if name is None else name), (deepcopy(self.actor) if actor is None else actor), default, (self.period if period is None else period), (lambda _coconut_x: deepcopy(self.extra_defaults) if _coconut_x is None else _coconut_x)(extra_defaults), copy_func, (lambda _coconut_x: self.extra_copy_funcs if _coconut_x is None else _coconut_x)(extra_copy_funcs), (self.debug if debug is None else debug))
 
+
     @property
     def copy_func(self):
         return self.copiers[self.name]
+
 
     @property
     def extra_copy_funcs(self):
         extra_copiers = self.copiers.copy()
         del extra_copiers[self.name]
         return extra_copiers
+
 
     def __call__(self, env, *args, **kwargs):
         """Call the agent's actor function."""
@@ -105,8 +109,10 @@ class Agent(_coconut.object):
             printerr("Error calculating action for {_coconut_format_0}({_coconut_format_1}, *{_coconut_format_2}, **{_coconut_format_3}):".format(_coconut_format_0=(self), _coconut_format_1=(env), _coconut_format_2=(args), _coconut_format_3=(kwargs)))
             raise
 
+
     def __repr__(self):
         return "Agent({_coconut_format_0})".format(_coconut_format_0=(self.name))
+
 
     def get_defaults(self):
         """Get a dictionary of all default values to assign."""
@@ -116,6 +122,7 @@ class Agent(_coconut.object):
         for name, val in self.extra_defaults.items():
             defaults[name] = deepcopy(val)
         return defaults
+
 
 
 _coconut_call_set_names(Agent)
@@ -149,6 +156,7 @@ def agent(name_or_agent_func=None, **kwargs):
         return Agent(name_or_agent_func.__name__, name_or_agent_func, **kwargs)
 
 
+
 DEFAULT_EXPR_ALIASES = {"\n": ""}
 
 def expr_agent(name, expr, globs=None, aliases=None, eval=eval, **kwargs):
@@ -174,6 +182,7 @@ def expr_agent(name, expr, globs=None, aliases=None, eval=eval, **kwargs):
     return Agent(name, _coconut.functools.partial(eval, expr, globs), **kwargs)
 
 
+
 def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs):
     """Construct an agent that prompts a human for an expression as in expr_agent.
 
@@ -184,7 +193,9 @@ def human_agent(name, pprint=True, globs=None, aliases=None, eval=eval, **kwargs
             pprint(clean_env(env))
         expr = input("{_coconut_format_0} = ".format(_coconut_format_0=(name)))
         return expr_agent(expr, globs, aliases, eval)(env)
+
     return Agent(name, human_actor, **kwargs)
+
 
 
 DEFAULT_BBOPT_ALG = "tree_structured_parzen_estimator"
@@ -218,7 +229,7 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=None, extra_copy_funcs
                 _coconut_match_check_0 = True
         if _coconut_match_check_0:
             if _coconut_match_set_name_bb is not _coconut_sentinel:
-                bb = _coconut_match_temp_0
+                bb = _coconut_match_set_name_bb
         if _coconut_match_check_0 and not (bb is not None):
             _coconut_match_check_0 = False
         if _coconut_match_check_0:
@@ -236,7 +247,9 @@ def bbopt_agent(name, tunable_actor, util_func, file, alg=None, extra_copy_funcs
             if chosen_alg is not None:
                 print("\nusing BBopt alg =", chosen_alg)
         return tunable_actor(bb, env)
+
     return Agent(name, bbopt_actor, extra_copy_funcs=extra_copy_funcs, **kwargs)
+
 
 
 def debug_agent(debug_str, name=None, **kwargs):
@@ -250,15 +263,18 @@ def debug_agent(debug_str, name=None, **kwargs):
     return Agent(name, lambda env: (printret)(debug_str.format(**env)), copy_func=None, **kwargs)
 
 
+
 def debug_all_agent(pretty=True, **kwargs):
     """Construct an agent that prints the entire env, prettily if _pretty_."""
     print_func = pprint if pretty else print
     return Agent(None, lambda env: print_func(clean_env(env)), copy_func=None, **kwargs)
 
 
+
 def init_agent(name, constant):
     """Construct an agent that just initializes name to the given constant."""
     return Agent(name, lambda env: constant, default=constant, period=float("inf"))
+
 
 
 def hist_agent(name, record_var, maxhist=None, record_var_copy_func=Agent._sentinel, initializer=(), **kwargs):
@@ -285,10 +301,12 @@ def hist_agent(name, record_var, maxhist=None, record_var_copy_func=Agent._senti
             got_val = copier(got_val)
         env[name].append(got_val)
         return env[name]
+
     init_hist = [] if maxhist is None else deque(maxlen=maxhist)
     for x in initializer:
         init_hist.append(x)
     return Agent(name, hist_actor, default=init_hist, **kwargs)
+
 
 
 def iterator_agent(name, iterable, extra_defaults=None, extra_copy_funcs=None, **kwargs):
@@ -302,4 +320,5 @@ def iterator_agent(name, iterable, extra_defaults=None, extra_copy_funcs=None, *
     def iterator_actor(env):
         env[it_name] = (iter)(env[it_name])
         return next(env[it_name])
+
     return Agent(name, iterator_actor, extra_defaults=extra_defaults, extra_copy_funcs=extra_copy_funcs, **kwargs)

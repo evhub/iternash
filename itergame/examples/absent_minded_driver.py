@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa7fafaa1
+# __coconut_hash__ = 0x72194ac7
 
-# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys as _coconut_sys, os as _coconut_os
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.dirname(_coconut_os.path.abspath(__file__)))
 _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:
+if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:  # type: ignore
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_dir)
 _coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
+from __coconut__ import _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -104,6 +104,7 @@ def nonseq_d_PC_agent(env):
 
 # probability of catastrophe in the sequential defection game
     return comb(m, d) * p**(m - d) * (1 - p)**d * (_coconut_forward_compose(hyp2f1, float))(1, d - m, d + 1, (p - 1) / p)
+
 @agent(name="PC", default=0.1)
 def exact_seq_d_PC_agent(env):
     m = env["m"]
@@ -114,6 +115,7 @@ def exact_seq_d_PC_agent(env):
         (-1)**(i+1) * (1-p + p*(m-i*d+1)/i) * comb(m-i*d, i-1) * (1-p)**(i*d) * p**(i-1)
         """, globs={"i": i, "comb": comb})(env)
     return PC
+
 
 seq_d_PC_agent = expr_agent(name="PC", expr="(1 - p**(m-d+1)) * (1-p)**(d-1)", default=0.1)
 
@@ -186,12 +188,14 @@ def run_stock_game(p):
     return env["ER"]
 
 
+
 def run_nonseq_game(d):
     """Run non-sequential d defection game and measure PC."""
     print("\nRunning conservative non-sequential {_coconut_format_0} defection game...".format(_coconut_format_0=(d)))
     env = conservative_nonseq_d_game.clone(name="conservative_nonseq_d{_coconut_format_0}_game".format(_coconut_format_0=(d)), d=d).run()
     pprint(env)
     return env["PC"]
+
 
 
 def run_seq_game(d):
@@ -202,13 +206,14 @@ def run_seq_game(d):
     return env["PC"]
 
 
+
 def print_logregress(ds, logys, yname="y"):
     """Print linear and quadratic regression of ds and logys."""
     m, b, r, p, se = linregress(ds, logys)
     print("\nlog({_coconut_format_0}) = {_coconut_format_1} d + {_coconut_format_2}\t(r**2 = {_coconut_format_3})".format(_coconut_format_0=(yname), _coconut_format_1=(m), _coconut_format_2=(b), _coconut_format_3=(r**2)))
     print("{_coconut_format_0} = {_coconut_format_1} * 2**({_coconut_format_2} d))".format(_coconut_format_0=(yname), _coconut_format_1=(exp(b)), _coconut_format_2=(m / log(2))))
     poly = PolynomialFeatures(degree=2, include_bias=False)
-    X = ((poly.fit_transform)((list)((map)(lambda x: [x, ], ds))))
+    X = ((poly.fit_transform)((list)((map)(lambda x: [x,], ds))))
     clf = linear_model.LinearRegression()
     clf.fit(X, logys)
 # a d**2 + b d + c
@@ -222,6 +227,7 @@ def print_logregress(ds, logys, yname="y"):
     print("{_coconut_format_0} = 2**((d - 1)({_coconut_format_1} d - {_coconut_format_2}) + {_coconut_format_3} d)".format(_coconut_format_0=(yname), _coconut_format_1=(a / log(2)), _coconut_format_2=(c / log(2)), _coconut_format_3=((a + b + c) / log(2))))
     print("{_coconut_format_0} = exp({_coconut_format_1} ((d - 1)(d - {_coconut_format_2}) + {_coconut_format_3} d))".format(_coconut_format_0=(yname), _coconut_format_1=(a), _coconut_format_2=(c / a), _coconut_format_3=(1 + (b + c) / a)))
     print("{_coconut_format_0} = 2**({_coconut_format_1} ((d - 1)(d - {_coconut_format_2}) + {_coconut_format_3} d))".format(_coconut_format_0=(yname), _coconut_format_1=(a / log(2)), _coconut_format_2=(c / a), _coconut_format_3=(1 + (b + c) / a)))
+
 
 
 if __name__ == "__main__":
@@ -240,8 +246,8 @@ if __name__ == "__main__":
     pprint(baseline_env)
 
     ds = range(1, 5)
-    nonseq_PCs = [baseline_env["PC"], ] + [run_nonseq_game(d) for d in ds[1:]]
-    seq_PCs = [baseline_env["PC"], ] + [run_seq_game(d) for d in ds[1:]]
+    nonseq_PCs = [baseline_env["PC"],] + [run_nonseq_game(d) for d in ds[1:]]
+    seq_PCs = [baseline_env["PC"],] + [run_seq_game(d) for d in ds[1:]]
 
     eps, m = common_params["eps"], common_params["m"]
     nonseq_logys = [log(PC / eps**d) for d, PC in zip(ds, nonseq_PCs)]
